@@ -22,7 +22,9 @@ from datetime import timedelta
 
 from ..db import jdump, jload, tx
 from ..sources.base import short_hash
-from ..textutil import DOMAIN_NOISE, near_duplicate_text, specific_tags, title_similarity, token_set, tokens
+from ..textutil import (
+    BROAD_TAGS, DOMAIN_NOISE, near_duplicate_text, specific_tags, title_similarity, token_set, tokens,
+)
 from ..timeutil import now_iso, now_utc, parse_iso, to_iso
 from .evidence import effective_trust
 
@@ -123,10 +125,21 @@ def _event_profile(conn: sqlite3.Connection, ev: sqlite3.Row) -> dict:
 
 
 def _tags_compatible(a: set[str], b: set[str]) -> bool:
+    """Belirti etiketleri aynı soruna işaret edebilir mi?
+
+    Ortak etiket yalnızca geniş etiketlerden (ör. "auth") oluşuyor ve iki tarafın da ayırt edici
+    etiketleri (ör. "rds" ↔ "dc") ayrışıyorsa uyumsuz sayılır: aynı KB'deki farklı sorunlar birleşmesin.
+    """
     sa, sb = specific_tags(a), specific_tags(b)
     if not sa or not sb:
         return True
-    return bool(sa & sb)
+    common = sa & sb
+    if not common:
+        return False
+    da, db = sa - BROAD_TAGS, sb - BROAD_TAGS
+    if common <= BROAD_TAGS and da and db and not (da & db):
+        return False
+    return True
 
 
 def _issue_candidates(conn: sqlite3.Connection, o: ObsRow, days: int) -> list[dict]:
@@ -160,6 +173,9 @@ def match_issue(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, f
         tag_overlap = bool(specific_tags(o.tags) & specific_tags(c["tags"]))
         sim = title_similarity(text, c["title"] + " " + c["signature"], technical=True)
         score = 0.0
+        if official and c["evidence"] in ("ms_known_issue", "ms_official") and sim < 0.3:
+            # İki resmî kayıt (ör. KB makalesi ↔ Release health) başlıkları benzemiyorsa ayrı sorun kabul edilir.
+            continue
         if kb_overlap and tag_overlap:
             score = 0.6 + 0.4 * sim
         elif kb_overlap and sim >= 0.45:

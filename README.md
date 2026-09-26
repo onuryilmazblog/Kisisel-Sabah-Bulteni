@@ -123,7 +123,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-54 test var: 7 kabul maddesi, gerçek Microsoft belgeleriyle ayrıştırıcılar, güvenlik (SSRF, güven
+55 test var: 7 kabul maddesi, gerçek Microsoft belgeleriyle ayrıştırıcılar, güvenlik (SSRF, güven
 sınıflandırması, Telegram yetkisi), LLM doğrulaması, e-posta ve web arayüzü.
 
 ## Bilinen sınırlamalar

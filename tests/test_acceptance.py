@@ -500,3 +500,32 @@ def test_delivery_retries_without_duplicates(tmp_path):
     process_deliveries(conn, telegram=tg2, part_delay=0)
     assert conn.execute("SELECT COUNT(*) FROM delivery_attempts WHERE delivery_id = ?", (did3,)).fetchone()[0] == attempts
     assert conn.execute("SELECT attempts FROM delivery_parts WHERE id = ?", (first_part["id"],)).fetchone()[0] == 1
+
+
+def test_kb_article_issue_does_not_merge_into_other_issue_of_same_kb(tmp_path):
+    """KB makalesinde yeni bir sorun (Credential Guard) var; Release health'te aynı KB'nin yalnızca RDS sorunu var."""
+    freeze(2026, 9, 20, 5)
+    conn = make_db(tmp_path)
+    kb_url = "https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5999008"
+    slugs = ["wrh-status-win11-25h2", "ms-uh-win11-25h2", "ms-kb-articles"]
+    uh = ("<html><body><main><a href='/en-us/servicing/os/windows-11/2026/09/kb5999008'>September 8, 2026—KB5999008 "
+          "(OS Builds 26200.9445 and 26100.9445)</a></main></body></html>")
+    kb_page = ("<html><body><main><h2>Known issues in this update</h2><table><tr><th>Symptom</th><th>Workaround</th></tr>"
+               "<tr><td><b>Remote Desktop Services might become unstable</b><p>RDP connections might fail after several "
+               "minutes; users see sign-in issues.</p></td><td>Use KIR.</td></tr>"
+               "<tr><td><b>Credential Guard machine accounts might lose secure channel</b><p>Users might be unable to sign in "
+               "with domain credentials to Active Directory.</p></td><td>None yet.</td></tr></table>"
+               "<h2>How to get this update</h2></main></body></html>")
+    rds = dict(id="9101", title="Remote Desktop Services might become unstable", kb="5999008",
+               body="After installing KB5999008 RDS might become unstable, causing sign-in issues.", status="Mitigated",
+               workaround="Use the KIR Group Policy.", client="Windows 11, version 25H2")
+    ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), UH25: uh, kb_url: kb_page})
+    run(conn, ff, slugs)
+    freeze(2026, 9, 21, 5)
+    ff.pages[WRH25] = wrh_page([OLD_ISSUE, rds])
+    run(conn, ff, slugs)
+    rds_ev = event_of(conn, "wrh:9101")
+    rows = conn.execute("SELECT title, event_id FROM observations WHERE external_key LIKE 'kbki:%'").fetchall()
+    by_title = {r["title"]: r["event_id"] for r in rows}
+    assert by_title["Remote Desktop Services might become unstable"] == rds_ev
+    assert by_title["Credential Guard machine accounts might lose secure channel"] != rds_ev

@@ -195,6 +195,8 @@ SYMPTOM_TAGS: dict[str, list[str]] = {
 }
 
 HIGH_IMPACT_TAGS = {"rds", "dc", "auth", "vpn", "bitlocker", "network", "boot"}
+# Birçok farklı sorunda ortak geçen geniş etiketler: tek başına ortak olmaları aynı sorun demek değildir.
+BROAD_TAGS = {"auth", "network", "storage"}
 # Genel/zayıf etiketler: iki olayı birbirinden ayırmak için tek başına yeterli değil.
 WEAK_TAGS = {"update_install", "performance", "apps", "security"}
 
