@@ -1,0 +1,41 @@
+[project]
+name = "kisisel-sabah-bulteni"
+version = "0.1.0"
+description = "Kişisel Sabah Bülteni: Windows/Intune/ConfigMgr takibi, olay hafızası ve günlük bülten"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "jinja2>=3.1",
+  "python-multipart>=0.0.9",
+  "httpx>=0.27",
+  "beautifulsoup4>=4.12",
+  "lxml>=5.0",
+  "feedparser>=6.0",
+  "tzdata>=2024.1",
+  "itsdangerous>=2.1",
+  "pydantic>=2.6",
+  "icalendar>=5.0",
+  "recurring-ical-events>=2.2",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=1.0"]
+youtube = ["youtube-transcript-api>=0.6"]
+dev = ["pytest>=8", "respx>=0.21"]
+
+[project.scripts]
+bulten = "bulten.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bulten*"]
+
+[tool.setuptools.package-data]
+bulten = ["migrations/*.sql", "web/templates/*.html", "web/static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><meta name="ms.date" content="09/12/2026"><title>Windows 11, version 25H2 known issues and notifications | Microsoft Learn</title></head>
+<body><nav>Skip to main content</nav>
+<main id="main">
+<h1>Windows 11, version 25H2 known issues and notifications</h1>
+<p>Find information on known issues and the status of the rollout for Windows 11, version 25H2.</p>
+<h2 id="known-issues">Known issues</h2>
+<p>This table offers a summary of current active issues and those issues that have been resolved in the last 30 days.</p>
+<table>
+<thead><tr><th>Summary</th><th>Originating update</th><th>Status</th><th>Last updated</th></tr></thead>
+<tbody>
+<tr><td><a href="#9101msgdesc" data-linktype="self-bookmark"><b>Remote Desktop Services might become unstable</b></a><br>RDP connections might fail after several minutes on affected servers.</td><td>OS Build 26200.9445<br><a href="https://support.microsoft.com/help/5999008">KB5999008</a><br>2026-09-08</td><td>Mitigated</td><td>2026-09-12<br>14:20 PT</td></tr>
+<tr><td><a href="#9102msgdesc" data-linktype="self-bookmark"><b>Credential Guard protected machine accounts might lose secure channel</b></a><br>Users might be unable to sign in with valid domain credentials.</td><td>OS Build 26200.9445<br><a href="https://support.microsoft.com/help/5999008">KB5999008</a><br>2026-09-08</td><td>Confirmed</td><td>2026-09-10<br>10:00 PT</td></tr>
+<tr><td><a href="#9050msgdesc" data-linktype="self-bookmark"><b>Some USB audio devices might fail to start</b></a><br>Affected devices might show Code 10 in Device Manager.</td><td>OS Build 26200.9278<br><a href="https://support.microsoft.com/help/5999001">KB5999001</a><br>2026-08-27</td><td>Resolved KB5999020</td><td>2026-09-14<br>10:00 PT</td></tr>
+</tbody>
+</table>
+<h2 id="issue-details">Issue details</h2>
+<h3 id="september-2026">September 2026</h3>
+<table>
+<tr><td>
+<div id="9101msgdesc"></div><b>Remote Desktop Services might become unstable</b>
+<table><tr><th>Status</th><th>Originating update</th><th>History</th></tr>
+<tr><td>Mitigated</td><td>OS Build 26200.9445<br>KB5999008<br>2026-09-08</td><td>Last updated: 2026-09-12, 14:20 PT<br>Opened: 2026-09-10, 09:12 PT</td></tr></table>
+<p>After installing the September 2026 Windows security update (KB5999008), released September 8, 2026, some organizations might experience issues with Remote Desktop Services (RDS). In some environments, RDS might become unstable, resulting in RDP connections failing after several minutes, sign-in issues, or servers hanging at "Please wait for the Remote Desktop Configuration".</p>
+<p><b>Workaround:</b> This issue is mitigated using a Known Issue Rollback (KIR). Enterprise-managed devices can resolve this issue by installing and configuring the special Group Policy linked below.</p>
+<p><b>Affected platforms:</b></p>
+<ul><li>Client: Windows 11, version 25H2; Windows 11, version 24H2</li><li>Server: Windows Server 2025</li></ul>
+<p><b>Next steps:</b> We are working on a resolution and will provide more information when it is available.</p>
+</td></tr>
+<tr><td>
+<div id="9102msgdesc"></div><b>Credential Guard protected machine accounts might lose secure channel</b>
+<table><tr><th>Status</th><th>Originating update</th><th>History</th></tr>
+<tr><td>Confirmed</td><td>OS Build 26200.9445<br>KB5999008<br>2026-09-08</td><td>Last updated: 2026-09-10, 10:00 PT<br>Opened: 2026-09-09, 16:40 PT</td></tr></table>
+<p>After installing the September 8, 2026, Windows security update (KB5999008), some Credential Guard protected machine accounts might lose their secure channel with an on-premises Active Directory (AD) domain. Users might be unable to sign in interactively with valid domain credentials. This issue is more likely on devices where Kerberos authentication uses machine account password rotation.</p>
+<p><b>Affected platforms:</b></p>
+<ul><li>Client: Windows 11, version 25H2; Windows 11, version 24H2</li><li>Server: None</li></ul>
+<p><b>Next steps:</b> We are investigating and will provide an update when more information is available.</p>
+</td></tr>
+</table>
+<h3 id="august-2026">August 2026</h3>
+<table>
+<tr><td>
+<div id="9050msgdesc"></div><b>Some USB audio devices might fail to start</b>
+<table><tr><th>Status</th><th>Originating update</th><th>History</th></tr>
+<tr><td>Resolved KB5999020</td><td>OS Build 26200.9278<br>KB5999001<br>2026-08-27</td><td>Resolved: 2026-09-14, 10:00 PT<br>Opened: 2026-08-29, 11:02 PT</td></tr></table>
+<p>After installing KB5999001, some USB Audio Class 1.0 devices might fail to start. The device displays "This device cannot start (Code 10)."</p>
+<p><b>Resolution:</b> This issue was resolved by the out-of-band update KB5999020, released September 14, 2026, and in updates released after this date.</p>
+<p><b>Affected platforms:</b></p>
+<ul><li>Client: Windows 11, version 25H2; Windows 11, version 24H2</li><li>Server: Windows Server 2025</li></ul>
+</td></tr>
+</table>
+</main></body></html>
