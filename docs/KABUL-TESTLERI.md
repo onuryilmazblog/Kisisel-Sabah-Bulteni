@@ -4,6 +4,9 @@
 katmanı (`tests/helpers.py: FakeFetcher`) ve sahte Telegram/SMTP/LLM sınıflarıyla taklit edilir. Saat,
 `timeutil.set_clock` ile sabitlenir.
 
+Kabul testlerinde r/sysadmin, "topluluk" güven düzeyindeki forum kaynağını temsil eder ve Reddit Data API
+adaptöründen (sahte kimlik bilgileri, elle hazırlanmış Listing JSON'u) geçer.
+
 | # | Kabul maddesi | Test(ler) (`tests/test_acceptance.py`) | Neyi doğrular |
 |---|---|---|---|
 | 1 | Aynı olay beş kaynakta ve iki kategoride geçse de tek haber oluşur | `test_same_event_in_five_sources_and_two_categories_is_one_item`, `test_same_issue_across_five_sources_is_one_event` | Haber tarafında 5 yayındaki (Türkiye/Dünya/Genel kategorileri) aynı deprem haberi tek olay olur ve bültende tek kez, tek kategoride çıkar; farklı yerdeki deprem ayrı kalır. Teknik tarafta 2 Release health sayfası, r/sysadmin, BleepingComputer ve Born'daki aynı RDP sorunu tek olay olur. |
@@ -20,10 +23,11 @@ katmanı (`tests/helpers.py: FakeFetcher`) ve sahte Telegram/SMTP/LLM sınıflar
 |---|---|
 | `tests/test_real_pages.py` | Gerçek Microsoft sayfaları (2026-09-26): Release health durum/çözülen sorunlar ve message center; güncelleme geçmişinde ürün menü kategorisi seçimi, göreli bağlantılar, güvenlik/preview/OOB ayrımı; KB makalelerinde sorun başına ayrıştırma, kısmi düzeltme, kaynak KB; gerçek sayfalarla uçtan uca tekilleştirme (aynı sorun farklı ürün KB'lerinde tek olay) |
 | `tests/test_parsers.py` | Release health (iki farklı HTML yapısı + tanınmayan sayfa), güncelleme türleri (güvenlik/preview/OOB/hotpatch), KB "Known issues" (elle hazırlanmış alternatif yapılar), Intune ve ConfigMgr (gerçek Microsoft belgeleri: MicrosoftDocs/memdocs), RSS süzme, Türkçe sayı biçimi, ICS, konum arama sıralaması (gerçek Open-Meteo yanıtı) |
-| `tests/test_security.py` | SSRF (özel/yerel IP, port, şema, kullanıcı bilgisi, DNS çözümlemesi), robots.txt'nin sayfalara uygulanıp belgelenmiş API'lere uygulanmaması, yerleşik kaynak tanımlarının yenilenmesi (kullanıcı tercihi korunur, robots.txt'nin engellediği kaynak kapanır), topluluk sayfalarının resmî sayılmaması, sendikasyon kopyalarının bağımsız sayılmaması, kullanıcı kaynağının "resmî" etiket alamaması, Telegram düğmelerinin yalnızca yetkili sohbetten kabulü |
+| `tests/test_reddit_api.py` | Reddit Data API adaptörü (elle hazırlanmış Listing JSON'u): RSS adaptörüyle aynı süzme ve alanlar, silinen/eski gönderilerin alınmaması, sayfalama, OAuth token isteği (client credentials, HTTP Basic, Reddit User-Agent) ve 401 sonrası tek yenileme, hız sınırı başlıkları ve 429'da yeniden denememe, tanınmayan yanıt yapısı, kimlik bilgisi yokken "yeni sorun yok" denmemesi (kaynak kapalı, elle açılırsa hata + bültende kapsam uyarısı, `kaynak-dogrula` → "yapılandırılmadı"), kimlik bilgisi eklenince/kaldırılınca yerleşik kaynakların açılıp kapanması |
+| `tests/test_security.py` | SSRF (özel/yerel IP, port, şema, kullanıcı bilgisi, DNS çözümlemesi), robots.txt'nin sayfalara uygulanıp belgelenmiş API'lere uygulanmaması, başka ana bilgisayara yönlendirmede kimlik bilgisi başlıklarının gönderilmemesi ve POST'un yönlendirme izlememesi, yerleşik kaynak tanımlarının yenilenmesi (kullanıcı tercihi korunur, robots.txt'nin engellediği kaynak kapanır), topluluk sayfalarının resmî sayılmaması, sendikasyon kopyalarının bağımsız sayılmaması, kullanıcı kaynağının "resmî" etiket alamaması, Telegram düğmelerinin yalnızca yetkili sohbetten kabulü |
 | `tests/test_llm.py` | Kanıtta olmayan KB içeren LLM çıktısının reddi, doğrulanamayan alıntının "AI çıkarımı"na düşürülmesi, günlük çağrı sınırı ve şablon yedeği, Türkçe–İngilizce haberin kanonik başlıkla tek olayda toplanması |
 | `tests/test_email.py` | SMTP sonuç sınıflandırması (gönderildi / yeniden denenebilir / kalıcı / belirsiz) ve deterministik Message-ID |
-| `tests/test_web.py` | Tüm sayfaların açılması, CSRF zorunluluğu, görüntülemenin "okundu" sayılmaması, e-posta bağlantısının onay gerektirmesi, ayar kaydı, özel ağ adreslerinin kaynak olarak reddi, parola modu, parolasız uzaktan erişim engeli |
+| `tests/test_web.py` | Tüm sayfaların açılması, Reddit kimlik bilgilerinin yalnızca "tanımlı / tanımlı değil" olarak gösterilmesi, CSRF zorunluluğu, görüntülemenin "okundu" sayılmaması, e-posta bağlantısının onay gerektirmesi, ayar kaydı, özel ağ adreslerinin kaynak olarak reddi, parola modu, parolasız uzaktan erişim engeli |
 
 ## Canlı doğrulama
 

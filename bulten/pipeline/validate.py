@@ -21,7 +21,7 @@ def validate_source(conn: sqlite3.Connection, src: SourceRow, fetcher: Fetcher |
     fetcher = fetcher or Fetcher(conn, respect_robots=True)
     started = time.time()
     out = {"slug": src.slug, "name": src.name, "url": src.fetch_url or src.url, "ok": False, "items": 0,
-           "warnings": [], "error": None, "sample": []}
+           "warnings": [], "error": None, "sample": [], "not_configured": False}
     try:
         adapter = ADAPTERS[src.adapter]
         # Kuru çalıştırma: DB'ye yazmayan bir bağlam (ms_kb/websearch okuma yapar, yazmaz).
@@ -37,6 +37,8 @@ def validate_source(conn: sqlite3.Connection, src: SourceRow, fetcher: Fetcher |
         out["sample"] = [o.title for o in res.observations[:3]]
     except FetchError as exc:
         out["error"] = str(exc)
+        # Gerekli .env yapılandırması (ör. Reddit API kimlik bilgileri) yok: "başarılı" sayılmaz.
+        out["not_configured"] = exc.kind == "config"
     except Exception as exc:  # noqa: BLE001
         out["error"] = f"{exc.__class__.__name__}: {exc}"
     finally:
@@ -69,7 +71,8 @@ def _recent_kb_targets(conn: sqlite3.Connection, fetcher: Fetcher, settings: dic
 
 
 def validate_sources(conn: sqlite3.Connection, slugs: list[str] | None = None, include_disabled: bool = False) -> list[dict]:
-    q = "SELECT * FROM sources" + ("" if include_disabled else " WHERE enabled = 1")
+    """Etkin kaynakları doğrular. Slug ile açıkça istenen kaynaklar kapalı olsalar da denenir."""
+    q = "SELECT * FROM sources" + ("" if include_disabled or slugs else " WHERE enabled = 1")
     rows = [SourceRow.from_row(r) for r in conn.execute(q).fetchall()]
     if slugs:
         rows = [r for r in rows if r.slug in slugs]

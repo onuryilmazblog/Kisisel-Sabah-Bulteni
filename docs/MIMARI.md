@@ -167,7 +167,7 @@ bulten/
   config.py, settings_store.py, catalog.py, db.py, timeutil.py, textutil.py, usage.py, demo.py, cli.py
   migrations/         SQL şeması
   net/                güvenli HTTP okuyucu, SSRF kuralları
-  sources/            adaptörler: wrh, ms_support, intune, configmgr, rss, websearch, youtube, registry
+  sources/            adaptörler: wrh, ms_support, intune, configmgr, rss, reddit_api, websearch, youtube, registry
   pipeline/           collect, canonical, match, evidence, analyze, summarize, cards, bulletin, run, validate
   llm/                sağlayıcı arayüzü, Anthropic (resmî SDK), OpenAI uyumlu
   daily/              weather, markets, calendar_ics, service

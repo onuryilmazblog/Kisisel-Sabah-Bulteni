@@ -7,6 +7,9 @@ robots.txt sayfa ve besleme okumalarında uygulanır. Programatik kullanım içi
 uç noktaları (`api=True`: Open-Meteo, TCMB/piyasa JSON, arama API'leri) robots.txt'ye değil
 sağlayıcının API koşullarına tabidir; ör. api.open-meteo.com tarayıcılar için "Disallow: /" döndürür
 ama /v1/forecast ücretsiz (ticari olmayan) programatik kullanım için sunulur.
+
+Kimlik bilgisi taşıyan başlıklar (Authorization, API anahtarı) başka bir kaynağa (şema/ana bilgisayar/port)
+yönlendirmede gönderilmez. POST istekleri (ör. OAuth token alma) yönlendirme izlemez.
 """
 from __future__ import annotations
 
@@ -30,16 +33,19 @@ from .ssrf import UnsafeURL, ip_is_public, resolve_public, validate_url_syntax
 log = logging.getLogger(__name__)
 
 RETRYABLE_STATUS = {408, 425, 429, 500, 502, 503, 504}
+# Başka bir kaynağa yönlendirmede düşürülen başlıklar (küçük harf).
+CREDENTIAL_HEADERS = {"authorization", "cookie", "x-subscription-token"}
 
 
 class FetchError(Exception):
     def __init__(self, message: str, *, kind: str = "network", status: int | None = None,
-                 retryable: bool = True, url: str | None = None):
+                 retryable: bool = True, url: str | None = None, headers: dict | None = None):
         super().__init__(message)
-        self.kind = kind            # network|http|blocked|robots|too_large|timeout
+        self.kind = kind            # network|http|blocked|robots|too_large|timeout|config (.env eksik)
         self.status = status
         self.retryable = retryable
         self.url = url
+        self.headers = headers or {}  # HTTP hatalarında yanıt başlıkları (ör. hız sınırı), küçük harf
 
 
 @dataclass
@@ -164,15 +170,24 @@ class Fetcher:
             time.sleep(wait)
 
     def _raw_get(self, url: str, *, trusted: bool, headers: dict, max_bytes: int) -> FetchResult:
+        return self._raw_request("GET", url, trusted=trusted, headers=headers, max_bytes=max_bytes)
+
+    def _raw_request(self, method: str, url: str, *, trusted: bool, headers: dict, max_bytes: int,
+                     data: dict | None = None, auth: tuple[str, str] | None = None) -> FetchResult:
         current = url
+        headers = dict(headers)
         for _hop in range(6):
             self._check_target(current, trusted)
             self._pace(urlsplit(current).netloc)
             try:
-                with self.client.stream("GET", current, headers=headers) as resp:
+                with self.client.stream(method, current, headers=headers, data=data, auth=auth) as resp:
                     self._check_peer(resp, current, trusted)
-                    if resp.status_code in (301, 302, 303, 307, 308) and resp.headers.get("location"):
-                        current = urljoin(current, resp.headers["location"])
+                    if (method == "GET" and resp.status_code in (301, 302, 303, 307, 308)
+                            and resp.headers.get("location")):
+                        target = urljoin(current, resp.headers["location"])
+                        if _origin(target) != _origin(current):
+                            headers = {k: v for k, v in headers.items() if k.lower() not in CREDENTIAL_HEADERS}
+                        current = target
                         continue
                     chunks, total = [], 0
                     for chunk in resp.iter_bytes():
@@ -224,13 +239,34 @@ class Fetcher:
                     return FetchResult(url=res.url, status=200, text=cached["body"] or "",
                                        content_type=cached["content_type"] or "", fetched_at=res.fetched_at,
                                        not_modified=True, from_cache=True, headers=res.headers)
-                if res.status in RETRYABLE_STATUS:
-                    raise FetchError(f"HTTP {res.status}", kind="http", status=res.status, url=res.url)
-                if res.status >= 400:
-                    raise FetchError(f"HTTP {res.status}", kind="http", status=res.status,
-                                     retryable=False, url=res.url)
+                _raise_for_status(res)
                 if use_cache and self.conn is not None:
                     self._cache_put(url, res)
+                return res
+            except FetchError as exc:
+                attempt += 1
+                if not exc.retryable or attempt > retries:
+                    raise
+                time.sleep(min(2 ** attempt, 8))
+
+    def post(self, url: str, *, data: dict, auth: tuple[str, str] | None = None, trusted: bool = False,
+             accept: str | None = None, extra_headers: dict | None = None, max_bytes: int | None = None,
+             retries: int = 1) -> FetchResult:
+        """Belgelenmiş bir API'ye form gönderir (ör. OAuth token). robots.txt ve önbellek uygulanmaz,
+        yönlendirme izlenmez (kimlik bilgileri başka adrese gönderilmesin)."""
+        headers = dict(extra_headers or {})
+        if accept:
+            headers["Accept"] = accept
+        limit = max_bytes or self.cfg.http_max_bytes
+        attempt = 0
+        while True:
+            try:
+                res = self._raw_request("POST", url, trusted=trusted, headers=headers, max_bytes=limit,
+                                        data=data, auth=auth)
+                _raise_for_status(res)
+                if res.status >= 300:
+                    raise FetchError(f"Beklenmeyen yönlendirme (HTTP {res.status}); POST yönlendirmesi izlenmez.",
+                                     kind="http", status=res.status, retryable=False, url=res.url)
                 return res
             except FetchError as exc:
                 attempt += 1
@@ -252,6 +288,19 @@ class Fetcher:
             (url, res.headers.get("etag"), res.headers.get("last-modified"), res.content_hash,
              res.content_type, res.text, res.fetched_at),
         )
+
+
+def _raise_for_status(res: FetchResult) -> None:
+    if res.status in RETRYABLE_STATUS:
+        raise FetchError(f"HTTP {res.status}", kind="http", status=res.status, url=res.url, headers=res.headers)
+    if res.status >= 400:
+        raise FetchError(f"HTTP {res.status}", kind="http", status=res.status, retryable=False, url=res.url,
+                         headers=res.headers)
+
+
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parts = urlsplit(url)
+    return parts.scheme.lower(), (parts.hostname or "").lower(), parts.port
 
 
 def _sniff_encoding(raw: bytes) -> str | None:

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import secrets
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -101,6 +102,11 @@ class Config:
     searxng_url: str = ""
     search_daily_limit: int = 30
 
+    # Reddit Data API (OAuth "script" uygulaması, yalnızca uygulama erişimi / client credentials)
+    reddit_client_id: str = ""
+    reddit_client_secret: str = ""
+    reddit_user_agent: str = ""             # <platform>:<uygulama kimliği>:<sürüm> (by /u/<kullanıcı adı>)
+
     # Veri sağlayıcıları
     weather_provider: str = "open_meteo"
     open_meteo_base: str = "https://api.open-meteo.com"
@@ -135,6 +141,22 @@ class Config:
             return bool(self.searxng_url)
         return False
 
+    @property
+    def reddit_missing(self) -> list[str]:
+        """Reddit Data API için eksik .env değişkenleri (değerler asla döndürülmez)."""
+        missing = []
+        if not self.reddit_client_id:
+            missing.append("REDDIT_CLIENT_ID")
+        if not self.reddit_client_secret:
+            missing.append("REDDIT_CLIENT_SECRET")
+        if not self.reddit_user_agent:
+            missing.append("REDDIT_USER_AGENT (veya REDDIT_USERNAME)")
+        return missing
+
+    @property
+    def reddit_configured(self) -> bool:
+        return not self.reddit_missing
+
 
 _config: Config | None = None
 
@@ -163,6 +185,15 @@ def load_config(env_file: str | None = None, reload: bool = False) -> Config:
     ua = _str("HTTP_USER_AGENT", "KisiselSabahBulteni/0.1 (+single-user personal morning bulletin)")
     if not ua.isascii():
         raise ValueError("HTTP_USER_AGENT yalnızca ASCII karakter içermelidir (HTTP başlık kuralı).")
+
+    # Reddit API kuralı: benzersiz ve açıklayıcı User-Agent, iletişim için Reddit kullanıcı adıyla.
+    reddit_ua = _str("REDDIT_USER_AGENT")
+    reddit_user = _str("REDDIT_USERNAME").removeprefix("/").removeprefix("u/")
+    if not reddit_ua and reddit_user:
+        platform = {"win32": "windows", "darwin": "macos"}.get(sys.platform, sys.platform)
+        reddit_ua = f"{platform}:kisisel-sabah-bulteni:v0.1.0 (by /u/{reddit_user})"
+    if not reddit_ua.isascii():
+        raise ValueError("REDDIT_USER_AGENT / REDDIT_USERNAME yalnızca ASCII karakter içermelidir (HTTP başlık kuralı).")
 
     _config = Config(
         data_dir=data_dir,
@@ -200,6 +231,9 @@ def load_config(env_file: str | None = None, reload: bool = False) -> Config:
         brave_api_key=_str("BRAVE_API_KEY"),
         searxng_url=_str("SEARXNG_URL").rstrip("/"),
         search_daily_limit=_int("SEARCH_DAILY_LIMIT", 30),
+        reddit_client_id=_str("REDDIT_CLIENT_ID"),
+        reddit_client_secret=_str("REDDIT_CLIENT_SECRET"),
+        reddit_user_agent=reddit_ua,
         weather_provider=_str("WEATHER_PROVIDER", "open_meteo"),
         open_meteo_base=_str("OPEN_METEO_BASE", "https://api.open-meteo.com").rstrip("/"),
         open_meteo_geocoding_base=_str(

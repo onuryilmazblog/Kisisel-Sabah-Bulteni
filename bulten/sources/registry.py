@@ -3,7 +3,8 @@
 Kaynaklar veri tabanında saklanır. Yerleşik kaynaklar her başlangıçta slug'a göre eklenir.
 Arayüzden yerleşik kaynakların yalnızca açık/kapalı durumu değiştirilebilir; bu tercih korunur.
 `BUILTIN_REV` artırıldığında mevcut yerleşik kaynakların tanımı (adres, yapılandırma, not)
-koddaki listeyle yenilenir.
+koddaki listeyle yenilenir. .env'e bağlı kaynaklar (ör. Reddit Data API kimlik bilgileri) yapılandırma
+tanımlandığında açılır, kaldırıldığında kapanır.
 """
 from __future__ import annotations
 
@@ -11,9 +12,10 @@ import sqlite3
 from typing import Any
 
 from ..catalog import PRODUCTS, wrh_url
+from ..config import Config, load_config
 from ..db import jdump, jload, kv_get, kv_set
 from ..timeutil import now_iso
-from . import configmgr, intune, ms_support, rss, websearch, wrh
+from . import configmgr, intune, ms_support, reddit_api, rss, websearch, wrh
 from .base import AdapterFn
 
 ADAPTERS: dict[str, AdapterFn] = {
@@ -28,6 +30,7 @@ ADAPTERS: dict[str, AdapterFn] = {
     "cm_release_notes": configmgr.run_cm_release_notes,
     "cm_tp": configmgr.run_cm_tp,
     "rss": rss.run_rss,
+    "reddit_api": reddit_api.run_reddit_api,
     "web_search": websearch.run_web_search,
 }
 
@@ -43,13 +46,15 @@ ADAPTER_LABELS = {
     "cm_release_notes": "ConfigMgr sürüm notları",
     "cm_tp": "ConfigMgr Technical Preview",
     "rss": "RSS/Atom beslemesi",
+    "reddit_api": "Reddit Data API (OAuth)",
     "web_search": "Web araması",
 }
 
 # Yerleşik kaynak tanımları değiştiğinde artırılır (mevcut kurulumlarda adres/yapılandırma yenilenir).
 # 2: support.microsoft.com kanonik /servicing/os/ adresleri, güncelleme geçmişi menü kategorisi,
 #    canlı doğrulama notları, robots.txt'nin engellediği kaynakların kapatılması, NTV adresi.
-BUILTIN_REV = 2
+# 3: Reddit kaynakları RSS yerine Reddit Data API (OAuth) adaptörüne geçti.
+BUILTIN_REV = 3
 
 RAW_MEMDOCS = "https://raw.githubusercontent.com/MicrosoftDocs/memdocs/main/"
 LIVE_VALIDATED = "Canlı doğrulandı (2026-09-26, bulten kaynak-dogrula --hepsi)."
@@ -57,22 +62,40 @@ UNVALIDATED = "Doğrulanmadı: 'Kaynağı test et' ile kontrol edin."
 ROBOTS_BLOCKED = ("robots.txt otomatik erişime izin vermiyor (2026-09-26'da kontrol edildi); uygulama robots.txt'ye "
                   "uyduğu için varsayılan olarak kapalı.")
 MEMDOCS_VALIDATED = "Markdown kaynağı GitHub'dan canlı okunarak doğrulandı (2026-09-26)."
+REDDIT_API_NOTE = ("Reddit Data API (OAuth, uygulama erişimi) ile okunur; RSS beslemesi robots.txt nedeniyle "
+                   "kullanılmaz. Canlı doğrulanmadı: 'Test et' veya bulten kaynak-dogrula ile kontrol edin.")
+REDDIT_NOT_CONFIGURED = ("Reddit Data API yapılandırılmadı (.env: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, "
+                         "REDDIT_USER_AGENT); bu yüzden kapalı. Reddit'in robots.txt dosyası RSS okumaya izin "
+                         "vermiyor (2026-09-26'da kontrol edildi).")
+# (slug, ad, alt forum, kritik, max_age_days)
+REDDIT_SUBS = [
+    ("reddit-sysadmin", "r/sysadmin", "sysadmin", True, 4),
+    ("reddit-intune", "r/Intune", "Intune", True, 4),
+    ("reddit-sccm", "r/SCCM", "SCCM", False, 5),
+]
+
+
+def requirement_state(cfg: Config) -> dict[str, bool]:
+    """.env'e bağlı yerleşik kaynakların gereksinimleri: tanımlı mı?"""
+    return {"reddit_api": cfg.reddit_configured}
 
 
 def _src(slug: str, name: str, module: str, adapter: str, url: str, trust: str, *, fetch_url: str | None = None,
          fallback_url: str | None = None, category: str | None = None, products: list[str] | None = None,
          enabled: bool = True, critical: bool = False, config: dict[str, Any] | None = None,
-         note: str = UNVALIDATED, blocked: bool = False) -> dict[str, Any]:
-    # blocked: kaynak kalıcı olarak okunamıyor (ör. robots.txt); tanım yenilenirken de kapatılır.
+         note: str = UNVALIDATED, blocked: bool = False, requires: str | None = None) -> dict[str, Any]:
+    # blocked: kaynak okunamıyor (ör. robots.txt, eksik .env yapılandırması); tanım yenilenirken de kapatılır.
+    # requires: kaynağın bağlı olduğu .env gereksinimi (bkz. requirement_state).
     return {
         "slug": slug, "name": name, "module": module, "adapter": adapter, "url": url, "fetch_url": fetch_url,
         "fallback_url": fallback_url, "trust": trust, "category": category, "product_ids": products or [],
         "enabled": enabled and not blocked, "critical": critical, "config": config or {}, "validation_note": note,
-        "blocked": blocked,
+        "blocked": blocked, "requires": requires,
     }
 
 
-def builtin_sources() -> list[dict[str, Any]]:
+def builtin_sources(cfg: Config | None = None) -> list[dict[str, Any]]:
+    cfg = cfg or load_config()
     out: list[dict[str, Any]] = []
     for p in PRODUCTS:
         if p.wrh_status:
@@ -142,13 +165,16 @@ def builtin_sources() -> list[dict[str, Any]]:
         _src("tc-configmgr", "Configuration Manager blogu", "configmgr", "rss",
              "https://techcommunity.microsoft.com/t5/s/gxcuf89792/rss/board?board.id=ConfigurationManagerBlog",
              "official", config={"max_age_days": 30, "official_blog": True}, note=LIVE_VALIDATED),
-        # Saha sinyalleri: topluluklar ve teknoloji yayınları
-        _src("reddit-sysadmin", "r/sysadmin", "community", "rss", "https://www.reddit.com/r/sysadmin/new/.rss",
-             "community", critical=True, config={"max_age_days": 4}, note=ROBOTS_BLOCKED, blocked=True),
-        _src("reddit-intune", "r/Intune", "community", "rss", "https://www.reddit.com/r/Intune/new/.rss",
-             "community", critical=True, config={"max_age_days": 4}, note=ROBOTS_BLOCKED, blocked=True),
-        _src("reddit-sccm", "r/SCCM", "community", "rss", "https://www.reddit.com/r/SCCM/new/.rss",
-             "community", config={"max_age_days": 5}, note=ROBOTS_BLOCKED, blocked=True),
+    ]
+    # Saha sinyalleri: topluluklar (Reddit Data API; RSS robots.txt nedeniyle okunamaz) ve teknoloji yayınları
+    reddit_ok = cfg.reddit_configured
+    for slug, name, sub, critical, max_age in REDDIT_SUBS:
+        out.append(_src(slug, name, "community", "reddit_api", f"{reddit_api.WEB_BASE}/r/{sub}/new/", "community",
+                        fetch_url=f"{reddit_api.API_BASE}/r/{sub}/new", critical=critical,
+                        config={"subreddit": sub, "max_age_days": max_age},
+                        note=REDDIT_API_NOTE if reddit_ok else REDDIT_NOT_CONFIGURED, blocked=not reddit_ok,
+                        requires="reddit_api"))
+    out += [
         _src("bleepingcomputer", "BleepingComputer", "community", "rss", "https://www.bleepingcomputer.com/feed/",
              "press", critical=True, config={"max_age_days": 5}, note=LIVE_VALIDATED),
         _src("borncity", "Born's Tech and Windows World", "community", "rss", "https://borncity.com/win/feed/",
@@ -185,26 +211,34 @@ def builtin_sources() -> list[dict[str, Any]]:
     return out
 
 
-def seed_sources(conn: sqlite3.Connection) -> int:
+def seed_sources(conn: sqlite3.Connection, cfg: Config | None = None) -> int:
     """Yerleşik kaynakları ekler; `BUILTIN_REV` arttıysa mevcutların tanımını yeniler.
 
-    Açık/kapalı tercihi korunur; tek istisna kalıcı olarak okunamayan (`blocked`, ör. robots.txt)
-    kaynakların kapatılmasıdır. Eklenen kaynak sayısını döndürür.
+    Açık/kapalı tercihi korunur. İstisnalar: okunamayan (`blocked`, ör. robots.txt veya eksik .env
+    yapılandırması) kaynaklar kapatılır; bağlı olduğu .env gereksinimi (`requires`) tanımlanan kaynak
+    varsayılan durumuna (açık) getirilir. Eklenen kaynak sayısını döndürür.
     """
+    cfg = cfg or load_config()
     added = 0
     ts = now_iso()
     refresh = int(kv_get(conn, "builtin_sources_rev", "0") or 0) < BUILTIN_REV
-    for s in builtin_sources():
+    state = requirement_state(cfg)
+    previous = jload(kv_get(conn, "builtin_sources_requirements"), {})
+    changed = {k for k, v in state.items() if previous.get(k) != v}
+    for s in builtin_sources(cfg):
         exists = conn.execute("SELECT id FROM sources WHERE slug = ?", (s["slug"],)).fetchone()
         if exists:
-            if refresh:
+            req_changed = s["requires"] in changed
+            if refresh or req_changed:
+                # None: kullanıcının açık/kapalı tercihi korunur.
+                enabled = 0 if s["blocked"] else (int(s["enabled"]) if req_changed else None)
                 conn.execute(
                     "UPDATE sources SET name = ?, module = ?, adapter = ?, url = ?, fetch_url = ?, fallback_url = ?, "
                     "trust = ?, category = ?, product_ids = ?, critical = ?, config_json = ?, validation_note = ?, "
-                    "enabled = CASE WHEN ? = 1 THEN 0 ELSE enabled END, updated_at = ? WHERE id = ? AND builtin = 1",
+                    "enabled = COALESCE(?, enabled), updated_at = ? WHERE id = ? AND builtin = 1",
                     (s["name"], s["module"], s["adapter"], s["url"], s["fetch_url"], s["fallback_url"], s["trust"],
                      s["category"], jdump(s["product_ids"]), 1 if s["critical"] else 0, jdump(s["config"]),
-                     s["validation_note"], 1 if s["blocked"] else 0, ts, exists["id"]),
+                     s["validation_note"], enabled, ts, exists["id"]),
                 )
             continue
         conn.execute(
@@ -218,6 +252,8 @@ def seed_sources(conn: sqlite3.Connection) -> int:
         added += 1
     if refresh:
         kv_set(conn, "builtin_sources_rev", str(BUILTIN_REV))
+    if changed:
+        kv_set(conn, "builtin_sources_requirements", jdump(state))
     return added
 
 

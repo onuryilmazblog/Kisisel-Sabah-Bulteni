@@ -1,4 +1,6 @@
-"""Genel RSS/Atom adaptörü: haberler, teknoloji yayınları, topluluklar (Reddit vb.), bloglar, YouTube.
+"""Genel RSS/Atom adaptörü: haberler, teknoloji yayınları, topluluklar, bloglar, YouTube.
+
+Reddit RSS beslemeleri robots.txt nedeniyle okunmaz; Reddit için bkz. reddit_api.py (aynı süzme kuralları).
 
 Topluluk ve basın kaynaklarında yalnızca takip edilen kapsamla (Windows/Intune/ConfigMgr)
 ilgili ve sorun bildirimi gibi görünen kayıtlar "saha raporu" (field_report) olarak alınır.
@@ -46,6 +48,27 @@ def canonical_url(url: str | None) -> str | None:
     return u
 
 
+def community_kind(full: str, source: SourceRow) -> str | None:
+    """Topluluk/basın kaydının türü: izlenen kapsam dışındaysa None; sorun bildirimi gibi görünüyorsa
+    "field_report"; aksi hâlde "article" (yalnızca `keep_articles` açıksa, yoksa None)."""
+    if not mentions_tracked_scope(full):
+        return None
+    kind = "field_report" if looks_like_issue_report(full) else "article"
+    if kind == "article" and not source.config.get("keep_articles", False):
+        return None
+    return kind
+
+
+def text_fields(full: str) -> dict:
+    """Metinden çıkarılan ortak alanlar (KB, ürün, belirti etiketi, CVE)."""
+    return {"kbs": extract_kbs(full), "products": extract_products(full), "tags": symptom_tags(full),
+            "cves": extract_cves(full)}
+
+
+def guess_lang(full: str, declared: str | None = None) -> str:
+    return declared or ("tr" if re.search(r"[çğıöşüİ]", full) else "en")
+
+
 def parse_feed(text: str, *, source: SourceRow, max_age_days: int = 7, max_items: int = 60) -> AdapterResult:
     parsed = feedparser.parse(text)
     if parsed.bozo and not parsed.entries:
@@ -74,14 +97,11 @@ def parse_feed(text: str, *, source: SourceRow, max_age_days: int = 7, max_items
         fields = {
             "source_name": source.name, "author": entry.get("author"), "trust": source.trust,
             "categories": [t.get("term") for t in entry.get("tags", []) if t.get("term")][:10],
-            "kbs": extract_kbs(full), "products": extract_products(full), "tags": symptom_tags(full),
-            "cves": extract_cves(full), "canonical_url": link, "summary": summary[:1500],
+            **text_fields(full), "canonical_url": link, "summary": summary[:1500],
         }
         if module in ("community", "press"):
-            if not mentions_tracked_scope(full):
-                continue
-            kind = "field_report" if looks_like_issue_report(full) else "article"
-            if kind == "article" and not source.config.get("keep_articles", False):
+            kind = community_kind(full, source)
+            if kind is None:
                 continue
         elif module == "news":
             kind = "article"
@@ -93,7 +113,7 @@ def parse_feed(text: str, *, source: SourceRow, max_age_days: int = 7, max_items
                 fields["transcript"] = None
         obs.append(Observation(
             external_key="rss:" + short_hash(str(guid), 16), kind=kind, title=title, url=link, body=summary,
-            lang=feed_lang or ("tr" if re.search(r"[çğıöşüİ]", full) else "en"),
+            lang=guess_lang(full, feed_lang),
             published_at=to_iso(ts), source_updated_at=to_iso(ts), fields=fields,
         ))
         if len(obs) >= max_items:

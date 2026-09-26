@@ -71,11 +71,18 @@ def cmd_validate(args) -> None:
 
     conn = _conn()
     results = validate_sources(conn, slugs=args.slug or None, include_disabled=args.all)
-    if not args.slug:
+    if args.slug:
+        found = {r["slug"] for r in results}
+        results += [{"slug": s, "url": "-", "ok": False, "items": 0, "warnings": [], "sample": [],
+                     "error": "Bu slug ile bir kaynak yok."} for s in args.slug if s not in found]
+    else:
         results += validate_daily(conn, include_disabled=args.all)
     ok = 0
     for r in results:
-        mark = "OK " if r["ok"] and not r["error"] else "HATA"
+        if r.get("not_configured"):
+            mark = "YAPILANDIRILMADI"
+        else:
+            mark = "OK " if r["ok"] and not r["error"] else "HATA"
         ok += 1 if mark == "OK " else 0
         print(f"[{mark}] {r['slug']:<34} {r['items']:>4} kayıt  {r.get('duration_ms', 0):>6} ms  {r['url']}")
         if r["error"]:
@@ -85,6 +92,9 @@ def cmd_validate(args) -> None:
         for t in r["sample"]:
             print(f"        örnek: {t[:140]}")
     print(f"\n{ok}/{len(results)} kaynak doğrulandı.")
+    unconfigured = sum(1 for r in results if r.get("not_configured"))
+    if unconfigured:
+        print(f"{unconfigured} kaynak yapılandırılmadı (.env); bunlar doğrulanmış sayılmaz.")
     sys.exit(0 if ok == len(results) else 1)
 
 
@@ -171,7 +181,7 @@ def main(argv: list[str] | None = None) -> None:
     b.add_argument("--manuel", dest="manual", action="store_true", help="Günlük yerine anlık (manuel) bülten")
     b.set_defaults(fn=cmd_bulletin)
     v = sub.add_parser("kaynak-dogrula", help="Kaynakları canlı olarak test et (kayıt yazmaz)")
-    v.add_argument("--slug", action="append", help="Yalnızca bu kaynak(lar)")
+    v.add_argument("--slug", action="append", help="Yalnızca bu kaynak(lar); kapalı olsa da denenir")
     v.add_argument("--hepsi", dest="all", action="store_true", help="Kapalı kaynakları da dene")
     v.set_defaults(fn=cmd_validate)
     sub.add_parser("demo-yukle", help="Kurgusal demo verisi yükle").set_defaults(fn=cmd_demo_load)

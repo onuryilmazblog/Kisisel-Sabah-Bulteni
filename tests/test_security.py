@@ -67,6 +67,45 @@ def test_robots_applies_to_pages_but_not_documented_apis(tmp_path):
     assert exc.value.kind == "robots" and seen.count("/v1/forecast") == 1 and "/feed/" not in seen
 
 
+def test_credentials_not_forwarded_on_cross_origin_redirect_and_post_does_not_follow(tmp_path):
+    """Bearer token (ör. Reddit API) başka bir ana bilgisayara yönlendirmede gönderilmemeli; OAuth token
+    isteği (POST) yönlendirme izlememeli ve robots.txt'ye bakmamalı; 429 yanıt başlıkları korunmalı."""
+    import httpx
+
+    conn = make_db(tmp_path)
+    seen: list[tuple[str, str, str | None]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, f"{request.url.host}{request.url.path}", request.headers.get("authorization")))
+        if request.url.path == "/same":
+            return httpx.Response(302, headers={"location": "/final"})
+        if request.url.path == "/cross":
+            return httpx.Response(302, headers={"location": "https://other.example/final"})
+        if request.url.path == "/token":
+            return httpx.Response(307, headers={"location": "https://other.example/token"})
+        if request.url.path == "/limited":
+            return httpx.Response(429, headers={"x-ratelimit-remaining": "0", "x-ratelimit-reset": "42"})
+        return httpx.Response(200, json={"ok": True})
+
+    f = Fetcher(conn, client=httpx.Client(transport=httpx.MockTransport(handler)), min_host_interval=0)
+    auth = {"Authorization": "bearer secret-token"}
+    f.get("https://api.example/same", trusted=True, api=True, use_cache=False, extra_headers=auth)
+    assert seen[-1] == ("GET", "api.example/final", "bearer secret-token")
+    f.get("https://api.example/cross", trusted=True, api=True, use_cache=False, extra_headers=auth)
+    assert seen[-1] == ("GET", "other.example/final", None)
+
+    with pytest.raises(FetchError) as exc:
+        f.post("https://api.example/token", data={"grant_type": "client_credentials"}, auth=("id", "secret"),
+               trusted=True)
+    assert exc.value.status == 307 and seen[-1][:2] == ("POST", "api.example/token")
+    assert seen[-1][2].startswith("Basic ") and not any(h.startswith("other.example/token") for _, h, _ in seen)
+    assert not any(h.endswith("/robots.txt") for _, h, _ in seen)
+
+    with pytest.raises(FetchError) as exc:
+        f.get("https://api.example/limited", trusted=True, api=True, use_cache=False, retries=0)
+    assert exc.value.status == 429 and exc.value.headers["x-ratelimit-reset"] == "42"
+
+
 def test_microsoft_community_pages_are_not_official():
     assert classify_url("https://learn.microsoft.com/en-us/answers/questions/123/kb-issue") == "community"
     assert classify_url("https://answers.microsoft.com/en-us/windows/forum/x") == "community"

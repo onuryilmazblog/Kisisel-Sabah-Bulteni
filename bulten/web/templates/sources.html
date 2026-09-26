@@ -13,7 +13,8 @@
 <tr class="{{ 'off' if not s.enabled }}" data-source="{{ s.id }}">
   <td><strong>{{ s.name }}</strong><br><a class="small" href="{{ s.url }}" target="_blank" rel="noopener noreferrer">{{ s.url[:70] }}</a>
     {% if s.fetch_url and s.fetch_url != s.url %}<br><span class="small">Okuma: {{ s.fetch_url[:70] }}</span>{% endif %}
-    {% if s.validation_note %}<br><span class="small muted">{{ s.validation_note }}</span>{% endif %}</td>
+    {% if s.validation_note %}<br><span class="small muted">{{ s.validation_note }}</span>{% endif %}
+    {% if s.adapter == 'reddit_api' %}<br><span class="small {{ '' if cfg.reddit_configured else 'warn-text' }}">Reddit API kimlik bilgileri (.env): {{ 'tanımlı' if cfg.reddit_configured else 'tanımlı değil' }}</span>{% endif %}</td>
   <td>{{ s.adapter_label }}{% if s.category %}<br><span class="small">{{ s.category }}</span>{% endif %}{% if s.critical %}<br><span class="badge">kritik kontrol</span>{% endif %}</td>
   <td>{{ {'official':'Resmî','press':'Basın','community':'Topluluk','user':'Kullanıcı','unknown':'Değişken'}.get(s.trust, s.trust) }}</td>
   <td>{{ fmt_tr(s.last_ok, tz) if s.last_ok else '—' }}</td>

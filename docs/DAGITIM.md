@@ -12,7 +12,7 @@ veya NAS.
 ```bash
 git clone <depo> bulten && cd bulten
 cp .env.example .env
-# .env: APP_PASSWORD, APP_SECRET_KEY, APP_BASE_URL (https://…), TELEGRAM_BOT_TOKEN, (isteğe bağlı) LLM/SMTP
+# .env: APP_PASSWORD, APP_SECRET_KEY, APP_BASE_URL (https://…), TELEGRAM_BOT_TOKEN, (isteğe bağlı) LLM/SMTP/REDDIT_*
 docker compose up -d --build
 docker compose exec web bulten kaynak-dogrula --hepsi   # kaynakları sunucunuzun ağından doğrulayın
 ```
@@ -99,4 +99,5 @@ Olay hafızası veri tabanında olduğu için yeniden başlatmalarda kaybolmaz. 
 | Hava | api.open-meteo.com, geocoding-api.open-meteo.com |
 | Piyasa | www.tcmb.gov.tr, finans.truncgil.com |
 | Topluluk/haber | www.bleepingcomputer.com, borncity.com, www.windowslatest.com, www.askwoody.com, haber yayınlarının RSS adresleri |
+| Reddit Data API (isteğe bağlı, `REDDIT_*`) | www.reddit.com (yalnızca `POST /api/v1/access_token`, OAuth token), oauth.reddit.com (`/r/<alt forum>/new`) |
 | Web araması | api.search.brave.com veya kendi SearXNG örneğiniz |

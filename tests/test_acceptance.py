@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import json
 
-from helpers import FakeFetcher, freeze, make_db, only_sources, rss_feed, wrh_page
+from helpers import (
+    REDDIT_TOKEN, FakeFetcher, enable_reddit_api, freeze, make_db, only_sources, reddit_listing, rss_feed, wrh_page,
+)
 
 from bulten.catalog import PRODUCT_BY_ID
 from bulten.config import load_config
@@ -17,13 +19,14 @@ from bulten.delivery.telegram import SendResult
 from bulten.pipeline.bulletin import compose_bulletin, select_alerts
 from bulten.pipeline.run import collect_and_process
 from bulten.settings_store import save_settings
+from bulten.sources.reddit_api import listing_url
 from bulten.timeutil import advance_clock, now_iso
 
 WRH = "https://learn.microsoft.com/en-us/windows/release-health/"
 WRH25 = WRH + "status-windows-11-25h2"
 WRH24 = WRH + "status-windows-11-24h2"
 WRHWS25 = WRH + "status-windows-server-2025"
-REDDIT = "https://www.reddit.com/r/sysadmin/new/.rss"
+REDDIT = listing_url("sysadmin")
 BLEEP = "https://www.bleepingcomputer.com/feed/"
 BORN = "https://borncity.com/win/feed/"
 UH25 = PRODUCT_BY_ID["win11-25h2"].update_history
@@ -52,12 +55,13 @@ def run(conn, ff, slugs):
 
 
 def enable_forum_source(conn):
-    """r/sysadmin, testlerde "topluluk" güven düzeyindeki bir forum beslemesini temsil eder.
+    """r/sysadmin, testlerde "topluluk" güven düzeyindeki bir forum kaynağını temsil eder.
 
-    Canlıda Reddit'in robots.txt dosyası otomatik erişimi yasakladığı için bu kaynak varsayılan olarak
-    kapalıdır ve gerçek Fetcher robots.txt'ye uyar; FakeFetcher robots.txt uygulamaz.
+    Reddit'in robots.txt dosyası RSS okumaya izin vermediği için kaynak Reddit Data API (OAuth) ile okunur;
+    kimlik bilgileri tanımlı değilse varsayılan olarak kapalıdır. Burada sahte kimlik bilgileri tanımlanır
+    ve yanıtlar (token + Listing JSON) FakeFetcher ile verilir.
     """
-    conn.execute("UPDATE sources SET enabled = 1 WHERE slug = 'reddit-sysadmin'")
+    enable_reddit_api(conn, ["reddit-sysadmin"])
 
 
 def send_daily(conn, tg):
@@ -128,13 +132,13 @@ def test_same_issue_across_five_sources_is_one_event(tmp_path):
     conn = make_db(tmp_path)
     slugs = ["wrh-status-win11-25h2", "wrh-status-win11-24h2", "reddit-sysadmin", "bleepingcomputer", "borncity"]
     enable_forum_source(conn)
-    ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), WRH24: wrh_page([OLD_ISSUE]), REDDIT: rss_feed([]),
+    ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), WRH24: wrh_page([OLD_ISSUE]), REDDIT: reddit_listing([]), **REDDIT_TOKEN,
                             BLEEP: rss_feed([]), BORN: rss_feed([])})
     run(conn, ff, slugs)  # gün 0: başlangıç taraması
     freeze(2026, 9, 21, 5)
     ff.pages[WRH25] = wrh_page([OLD_ISSUE, RDS_ISSUE])
     ff.pages[WRH24] = wrh_page([OLD_ISSUE, RDS_ISSUE], title="Windows 11, version 24H2 known issues")
-    ff.pages[REDDIT] = rss_feed([{"title": "KB5999100 is breaking RDP on our Windows Server 2025 session hosts",
+    ff.pages[REDDIT] = reddit_listing([{"title": "KB5999100 is breaking RDP on our Windows Server 2025 session hosts",
                                   "link": "https://www.reddit.com/r/sysadmin/comments/x1/", "author": "u/admin1",
                                   "desc": "Since KB5999100, Remote Desktop sessions drop after 5 minutes. Anyone else seeing this issue?",
                                   "date": "Mon, 21 Sep 2026 03:00:00 GMT"}])
@@ -164,7 +168,7 @@ def test_two_issues_same_kb_stay_separate(tmp_path):
     enable_forum_source(conn)
     ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), UH25: "<html><body><main>"
                             '<a href="/x/kb5999008">September 8, 2026—KB5999008 (OS Builds 26200.9445 and 26100.9445)</a>'
-                            "</main></body></html>", REDDIT: rss_feed([])})
+                            "</main></body></html>", REDDIT: reddit_listing([]), **REDDIT_TOKEN})
     run(conn, ff, slugs)
     freeze(2026, 9, 21, 5)
     cg = dict(id="9102", title="Credential Guard protected machine accounts might lose secure channel", kb="5999008",
@@ -178,7 +182,7 @@ def test_two_issues_same_kb_stay_separate(tmp_path):
                status="Mitigated", workaround="Use the Known Issue Rollback (KIR) Group Policy.",
                client="Windows 11, version 25H2", server="Windows Server 2025")
     ff.pages[WRH25] = wrh_page([OLD_ISSUE, rds, cg])
-    ff.pages[REDDIT] = rss_feed([
+    ff.pages[REDDIT] = reddit_listing([
         {"title": "KB5999008 broke RDP on our session hosts", "link": "https://www.reddit.com/r/sysadmin/comments/r1/",
          "desc": "Remote Desktop users disconnected after KB5999008 on Windows Server 2025.", "author": "u/a",
          "date": "Mon, 21 Sep 2026 03:00:00 GMT"},
@@ -206,13 +210,13 @@ def test_read_field_report_then_ms_confirmation_notifies(tmp_path):
     tg = FakeTelegram()
     slugs = ["wrh-status-ws2025", "reddit-sysadmin", "borncity"]
     enable_forum_source(conn)
-    ff = FakeFetcher(pages={WRHWS25: wrh_page([OLD_ISSUE], title="Windows Server 2025"), REDDIT: rss_feed([]),
+    ff = FakeFetcher(pages={WRHWS25: wrh_page([OLD_ISSUE], title="Windows Server 2025"), REDDIT: reddit_listing([]), **REDDIT_TOKEN,
                             BORN: rss_feed([])})
     run(conn, ff, slugs)
     send_daily(conn, tg)
 
     freeze(2026, 9, 21, 5)
-    ff.pages[REDDIT] = rss_feed([{"title": "KB5999011 broke Always On VPN on our Server 2025 RRAS boxes",
+    ff.pages[REDDIT] = reddit_listing([{"title": "KB5999011 broke Always On VPN on our Server 2025 RRAS boxes",
                                   "link": "https://www.reddit.com/r/sysadmin/comments/v1/", "author": "u/alice",
                                   "desc": "After installing KB5999011 on Windows Server 2025 RRAS servers, IKEv2 VPN connections fail.",
                                   "date": "Mon, 21 Sep 2026 01:00:00 GMT"}])

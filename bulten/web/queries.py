@@ -212,6 +212,9 @@ def system_view(conn: sqlite3.Connection) -> dict:
         requirements.append(("info", "LLM yapılandırılmadı (LLM_PROVIDER/ANTHROPIC_API_KEY): özetler AI'sız şablonla üretiliyor."))
     if not cfg.search_configured:
         requirements.append(("info", "Web araması yapılandırılmadı (SEARCH_PROVIDER): yalnızca listelenen kaynaklar taranıyor."))
+    if not cfg.reddit_configured:
+        requirements.append(("info", "Reddit Data API tanımlı değil (" + ", ".join(cfg.reddit_missing) + "): "
+                                     "r/sysadmin, r/Intune ve r/SCCM okunmuyor."))
     if not cfg.telegram_bot_token:
         requirements.append(("info", "TELEGRAM_BOT_TOKEN tanımlı değil: Telegram bildirimi yapılamaz."))
     if not cfg.email_configured:

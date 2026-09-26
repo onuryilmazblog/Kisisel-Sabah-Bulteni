@@ -31,7 +31,8 @@ ve gerçek verilerle uçtan uca bir turla (toplama → eşleştirme → analiz �
 | 1 | Worker/zamanlayıcı | ✅ | ✅ Gerçek süreç olarak çalıştırıldı |
 | 1 | Web arayüzü (Türkçe, mobil) | ✅ | ✅ Gerçek verilerle tüm sayfalar |
 | 1 | LLM özetleri (Claude, resmî SDK) + AI'sız şablon | ✅ Sahte sağlayıcı ile | ❌ API anahtarı yok (şablon özet canlı) |
-| 2 | Topluluk/basın RSS (BleepingComputer, Born, Windows Latest, AskWoody, Tech Community blogları) | ✅ | ✅ (Reddit: robots.txt engelliyor, aşağıya bakın) |
+| 2 | Topluluk/basın RSS (BleepingComputer, Born, Windows Latest, AskWoody, Tech Community blogları) | ✅ | ✅ |
+| 2 | Reddit Data API (r/sysadmin, r/Intune, r/SCCM; OAuth, yalnızca uygulama erişimi) | ✅ Elle hazırlanmış Listing JSON'u ile | ❌ Kimlik bilgisi yok (aşağıya bakın) |
 | 2 | Web araması (Brave / SearXNG) | ✅ Kod | ❌ Anahtar/uç nokta yok |
 | 2 | Hava durumu (Open-Meteo) | ✅ | ✅ |
 | 2 | Piyasalar (TCMB referans + piyasa, bilezik ayrı) | ✅ | ✅ TCMB + Truncgil |
@@ -80,7 +81,7 @@ komutunu kullanın.
 | `bulten worker` | Zamanlayıcı + worker + Telegram long polling |
 | `bulten kontrol [--kritik]` | Hemen topla → eşleştir → analiz et → özetle |
 | `bulten bulten [--gonder] [--manuel]` | Bülteni şimdi oluştur (ve gönder) |
-| `bulten kaynak-dogrula [--slug X] [--hepsi]` | Kaynakları canlı test eder, kayıt yazmaz |
+| `bulten kaynak-dogrula [--slug X] [--hepsi]` | Kaynakları canlı test eder, kayıt yazmaz (`--slug` ile istenen kaynak kapalı olsa da denenir) |
 | `bulten demo-yukle` / `demo-sil` | Demo verisi |
 | `bulten telegram-test` / `telegram-webhook` | Telegram testi / webhook kurulumu |
 | `bulten durum` | Worker nabzı, son başarılı kontroller, kullanım |
@@ -109,6 +110,8 @@ Teyit etiketleri: **Microsoft doğruladı — Known issues**, **Microsoft resmî
 ## Güvenlik
 
 - Tüm sırlar sunucudaki `.env` dosyasındadır; arayüz yalnızca "tanımlı / tanımlı değil" bilgisini gösterir.
+  API token'ları (ör. Reddit OAuth) yalnızca bellekte tutulur ve başka bir ana bilgisayara yönlendirmede
+  gönderilmez.
 - `APP_PASSWORD` yoksa arayüze yalnızca aynı makineden erişilebilir. İnternete açacaksanız parola ve HTTPS
   (ters proxy) kullanın; bkz. DAGITIM.md.
 - Arayüzden eklenen kaynaklarda yalnızca http/https ve 80/443 portları kabul edilir. Yerel ve özel ağ
@@ -124,17 +127,25 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-67 test var: 7 kabul maddesi, gerçek Microsoft sayfaları ve belgeleriyle ayrıştırıcılar ve tekilleştirme,
-güvenlik (SSRF, robots.txt, güven sınıflandırması, Telegram yetkisi), LLM doğrulaması, e-posta ve web arayüzü.
+79 test var: 7 kabul maddesi, gerçek Microsoft sayfaları ve belgeleriyle ayrıştırıcılar ve tekilleştirme,
+Reddit Data API adaptörü (elle hazırlanmış yanıtlarla), güvenlik (SSRF, robots.txt, yönlendirmede kimlik
+bilgisi, güven sınıflandırması, Telegram yetkisi), LLM doğrulaması, e-posta ve web arayüzü.
 
 ## Bilinen sınırlamalar
 
-- **Reddit ve Webrazzi varsayılan olarak kapalı.** Reddit'in robots.txt dosyası tüm otomatik erişimi
-  yasaklıyor (`User-agent: *` / `Disallow: /`), Webrazzi ise `/feed/` yolunu genel ajanlara kapatıyor. Uygulama
-  robots.txt'ye uyar ve başka bir tarayıcı kimliğine bürünmez. Saha sinyalleri BleepingComputer, Born,
-  Windows Latest, AskWoody ve (yapılandırılırsa) web aramasından gelir.
+- **Reddit yalnızca resmî Data API ile okunur.** Reddit'in robots.txt dosyası tüm otomatik erişimi yasaklıyor
+  (`User-agent: *` / `Disallow: /`); uygulama robots.txt'ye uyar ve başka bir tarayıcı kimliğine bürünmez.
+  r/sysadmin, r/Intune ve r/SCCM için Reddit'te kendi "script" uygulamanızı oluşturup `.env` dosyasına
+  `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` ve `REDDIT_USER_AGENT` (veya `REDDIT_USERNAME`) yazın (bkz.
+  `.env.example`). Kimlik bilgileri yoksa bu kaynaklar kapalıdır ve `bulten kaynak-dogrula` onları
+  "yapılandırılmadı" olarak raporlar; tanımlandığında yeniden başlatmayla açılır. Entegrasyon henüz gerçek
+  Reddit hesabıyla uçtan uca çalıştırılmadı: token uç noktasına gerçek bir istekle hatalı kimlik bilgisinin
+  açık bir hata verdiği görüldü, gönderi okuma adımı yalnızca elle hazırlanmış yanıtlarla test edildi.
+- **Webrazzi varsayılan olarak kapalı.** Webrazzi `/feed/` yolunu genel ajanlara kapatıyor. Reddit
+  yapılandırılmamışsa saha sinyalleri BleepingComputer, Born, Windows Latest, AskWoody ve (yapılandırılırsa)
+  web aramasından gelir.
 - robots.txt sayfa ve besleme okumalarında uygulanır. Programatik kullanım için belgelenmiş API'ler (Open-Meteo,
-  TCMB, Truncgil, arama API'leri) sağlayıcının API koşullarına tabidir. Örneğin api.open-meteo.com tarayıcılar
+  TCMB, Truncgil, arama API'leri, Reddit Data API) sağlayıcının API koşullarına tabidir. Örneğin api.open-meteo.com tarayıcılar
   için `Disallow: /` döndürür ama ücretsiz (ticari olmayan) programatik kullanım için sunulur.
 - Microsoft sayfaları HTML olarak ayrıştırılır. Yapı değişirse kaynak "yapı tanınmadı" uyarısıyla işaretlenir
   ve bu durum "yeni sorun yok" diye sunulmaz.

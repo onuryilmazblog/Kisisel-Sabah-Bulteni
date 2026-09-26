@@ -72,4 +72,4 @@ Ağ erişimi açıldıktan sonra (2026-09-26):
   sorunun ürün başına farklı KB numarasıyla yayımlanması tekrar eden olaylar üretiyordu; eşleştirme buna göre
   düzeltildi ve gerçek sayfalarla regresyon testi eklendi. Değişmeyen içerikle ikinci toplama 0 yeni sürüm üretti.
 - Canlı çalıştırılmayanlar: Telegram, SMTP, Anthropic API (anahtar/sunucu yok), Brave/SearXNG web araması
-  (yapılandırılmadı), YouTube transkripti.
+  (yapılandırılmadı), YouTube transkripti, Reddit Data API (kimlik bilgisi yok; sonradan eklendi, bkz. KAYNAKLAR.md).

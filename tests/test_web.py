@@ -109,3 +109,18 @@ def test_remote_access_blocked_without_password(tmp_path):
     with TestClient(webapp.app, base_url="http://example.org", client=("203.0.113.5", 5000)) as c:
         r = c.get("/")
         assert r.status_code == 403
+
+
+def test_reddit_credentials_shown_only_as_defined_or_not(client):
+    from helpers import enable_reddit_api
+
+    kaynak, durum = client.get("/kaynaklar").text, client.get("/durum").text
+    assert "Reddit API kimlik bilgileri (.env): tanımlı değil" in kaynak
+    assert "Reddit Data API tanımlı değil" in durum and "REDDIT_CLIENT_SECRET" in durum
+    cfg = enable_reddit_api()
+    cfg.reddit_client_secret = "gizli-reddit-sirri-123"
+    for path in ("/kaynaklar", "/durum", "/ayarlar"):
+        html = client.get(path).text
+        assert cfg.reddit_client_secret not in html and cfg.reddit_client_id not in html, path
+    assert "Reddit API kimlik bilgileri (.env): tanımlı<" in client.get("/kaynaklar").text
+    assert "Reddit Data API tanımlı değil" not in client.get("/durum").text

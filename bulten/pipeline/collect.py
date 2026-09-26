@@ -28,7 +28,8 @@ log = logging.getLogger(__name__)
 # Bağımlılık sırası: güncelleme geçmişi → KB makaleleri → web araması (KB listesini kullanır)
 ADAPTER_ORDER = {
     "ms_update_history": 0, "wrh_status": 1, "wrh_resolved": 1, "wrh_messages": 2, "intune": 2,
-    "cm_versions": 2, "cm_hotfix": 2, "cm_release_notes": 2, "cm_tp": 3, "ms_kb": 4, "rss": 5, "web_search": 6,
+    "cm_versions": 2, "cm_hotfix": 2, "cm_release_notes": 2, "cm_tp": 3, "ms_kb": 4, "rss": 5, "reddit_api": 5,
+    "web_search": 6,
 }
 
 # Anlamsal özet: yalnızca anlamlı alanlar (yazım/tarih/düzen değişikliğini dışarıda bırakmak için).

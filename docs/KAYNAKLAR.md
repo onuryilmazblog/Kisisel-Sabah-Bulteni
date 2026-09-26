@@ -6,11 +6,14 @@ yeni RSS/Atom kaynakları eklenebilir. Aşağıdaki liste yerleşik kaynaklardı
 **Canlı doğrulama (2026-09-26):** `bulten kaynak-dogrula --hepsi` ile 63 kaynaktan 59'u doğrulandı. Başarısız
 olan dördü (3 Reddit beslemesi, Webrazzi) robots.txt nedeniyle okunamıyor ve varsayılan olarak kapalı. Kayıt
 sayıları doğrulama anındaki değerlerdir; topluluk beslemeleri yalnızca izlenen ürünlerle ilgili sorun
-bildirimlerini süzdüğü için 0 kayıt normaldir.
+bildirimlerini süzdüğü için 0 kayıt normaldir. Bu doğrulamadan sonra üç Reddit kaynağı RSS yerine Reddit
+Data API (OAuth) adaptörüne geçirildi; bu adaptör henüz canlı doğrulanmadı (aşağıya bakın).
 
 - ✅ **Canlı doğrulandı:** adaptör gerçek ağ üzerinden çalıştırıldı ve beklenen yapı bulundu.
 - ⛔ **robots.txt engelliyor:** site otomatik erişime izin vermiyor. Uygulama robots.txt'ye uyar ve başka bir
   tarayıcı kimliğine bürünmez.
+- 🔑 **Kimlik bilgisi gerekli:** kaynak `.env` ile yapılandırılmadıkça kapalıdır; `bulten kaynak-dogrula`
+  onu "yapılandırılmadı" olarak raporlar.
 
 \* Ürün bazlı Windows kaynakları kurulumda seçtiğiniz ürünlere göre otomatik açılır/kapanır.
 
@@ -59,9 +62,9 @@ bildirimlerini süzdüğü için 0 kayıt normaldir.
 | intune | Intune Customer Success blogu | RSS/Atom beslemesi | official | açık | <https://techcommunity.microsoft.com/t5/s/gxcuf89792/rss/board?board.id=IntuneCustomerSuccess> | ✅ Canlı doğrulandı (2 kayıt) |
 | windows | Windows IT Pro blogu | RSS/Atom beslemesi | official | açık | <https://techcommunity.microsoft.com/t5/s/gxcuf89792/rss/board?board.id=Windows-ITPro-blog> | ✅ Canlı doğrulandı (4 kayıt) |
 | configmgr | Configuration Manager blogu | RSS/Atom beslemesi | official | açık | <https://techcommunity.microsoft.com/t5/s/gxcuf89792/rss/board?board.id=ConfigurationManagerBlog> | ✅ Canlı doğrulandı (0 kayıt) |
-| community | r/sysadmin | RSS/Atom beslemesi | community | kapalı | <https://www.reddit.com/r/sysadmin/new/.rss> | ⛔ robots.txt otomatik erişime izin vermiyor; kapalı |
-| community | r/Intune | RSS/Atom beslemesi | community | kapalı | <https://www.reddit.com/r/Intune/new/.rss> | ⛔ robots.txt otomatik erişime izin vermiyor; kapalı |
-| community | r/SCCM | RSS/Atom beslemesi | community | kapalı | <https://www.reddit.com/r/SCCM/new/.rss> | ⛔ robots.txt otomatik erişime izin vermiyor; kapalı |
+| community | r/sysadmin | Reddit Data API (OAuth) | community | kimlik bilgisiyle açık | <https://www.reddit.com/r/sysadmin/new/> (okuma: `oauth.reddit.com/r/sysadmin/new`) | 🔑 Canlı doğrulanmadı (kimlik bilgisi yok). RSS beslemesi ⛔ robots.txt |
+| community | r/Intune | Reddit Data API (OAuth) | community | kimlik bilgisiyle açık | <https://www.reddit.com/r/Intune/new/> (okuma: `oauth.reddit.com/r/Intune/new`) | 🔑 Canlı doğrulanmadı (kimlik bilgisi yok). RSS beslemesi ⛔ robots.txt |
+| community | r/SCCM | Reddit Data API (OAuth) | community | kimlik bilgisiyle açık | <https://www.reddit.com/r/SCCM/new/> (okuma: `oauth.reddit.com/r/SCCM/new`) | 🔑 Canlı doğrulanmadı (kimlik bilgisi yok). RSS beslemesi ⛔ robots.txt |
 | community | BleepingComputer | RSS/Atom beslemesi | press | açık | <https://www.bleepingcomputer.com/feed/> | ✅ Canlı doğrulandı (1 kayıt) |
 | community | Born's Tech and Windows World | RSS/Atom beslemesi | press | açık | <https://borncity.com/win/feed/> | ✅ Canlı doğrulandı (0 kayıt) |
 | community | Windows Latest | RSS/Atom beslemesi | press | açık | <https://www.windowslatest.com/feed/> | ✅ Canlı doğrulandı (2 kayıt) |
@@ -99,7 +102,13 @@ konumu olarak kaydedilmez.
 - **"whats-new-incremental-versions" sayfası** sürüm listesini içermez; "Supported versions" tablosunun bulunduğu *Updates and servicing* sayfasına yönlendirir. Sürüm ve destek sonu bilgisi o sayfadan okunur.
 - **Technical Preview:** Microsoft'un belgesine göre son TP sürümü 2411'dir (Kasım 2024). Yeni TP yayımlanırsa aynı sayfadan algılanır.
 - **Topluluk sayfaları resmî sayılmaz:** learn.microsoft.com/answers, answers.microsoft.com ve Tech Community tartışmaları "topluluk" olarak sınıflandırılır. Yalnızca resmî blog panoları (Intune Customer Success, Windows IT Pro, Configuration Manager vb.) resmî kabul edilir.
-- **Reddit:** robots.txt tüm otomatik erişimi yasaklıyor. Resmî Reddit API'si (OAuth, uygulama kaydı gerektirir) ileride ayrı bir adaptör olarak eklenebilir.
+- **Reddit:** robots.txt tüm otomatik erişimi yasaklıyor (`User-agent: *` / `Disallow: /`, 2026-09-26'da kontrol edildi); RSS beslemeleri bu yüzden okunmaz. r/sysadmin, r/Intune ve r/SCCM resmî Reddit Data API ile okunur (`reddit_api` adaptörü):
+  - **Kurulum:** Reddit'te <https://www.reddit.com/prefs/apps> adresinden "script" türünde bir uygulama oluşturun (Reddit'in güncel Data API koşullarını ve kayıt sürecini kontrol edin). `.env` dosyasına `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` ve `REDDIT_USER_AGENT` yazın. User-Agent Reddit'in istediği biçimde olmalıdır: `<platform>:<uygulama kimliği>:<sürüm> (by /u/<kullanıcı adı>)`. `REDDIT_USER_AGENT` boşsa `REDDIT_USERNAME` ile bu biçimde oluşturulur. Yeniden başlattığınızda üç kaynak açılır. Kimlik bilgileri kaldırılırsa kapanır; aradaki süreçte kapattığınız kaynak kapalı kalır.
+  - **Erişim türü:** Yalnızca uygulama erişimi (client credentials) kullanılır. Reddit parolanız istenmez, hiçbir kullanıcı adına işlem yapılmaz. Token `www.reddit.com/api/v1/access_token` adresinden alınır ve yalnızca bellekte tutulur; veri tabanına veya günlüğe yazılmaz. Gönderiler `oauth.reddit.com/r/<alt forum>/new` adresinden okunur. Bunlar belgelenmiş API çağrıları olduğu için robots.txt'ye değil Reddit'in API koşullarına tabidir.
+  - **Hız sınırı:** OAuth istemcisi başına dakikada 100 istek. Her toplama turunda alt forum başına 1–2 istek yapılır. `X-Ratelimit-Remaining` / `X-Ratelimit-Reset` başlıkları izlenir; sınır dolmak üzereyse sıfırlanma zamanına kadar istek yapılmaz. HTTP 429 yanıtı hemen yeniden denenmez.
+  - **Filtreleme:** RSS adaptörüyle aynıdır. Yalnızca izlenen kapsamdan (Windows/Intune/ConfigMgr) söz eden ve sorun bildirimi gibi görünen gönderiler "saha raporu" olur. Silinen ve moderatörce kaldırılan gönderiler alınmaz. Güven düzeyi her zaman "topluluk"tur; gönderiler asla Microsoft teyidi sayılmaz.
+  - **Dürüst raporlama:** Kimlik bilgileri yoksa kaynak kapalıdır. Elle açılırsa her kontrol "hata" olarak kaydedilir ve bültende kapsam uyarısı çıkar; "yeni sorun yok" diye yorumlanmaz. `bulten kaynak-dogrula --slug reddit-sysadmin` bu durumda `[YAPILANDIRILMADI]` yazar ve hata koduyla çıkar.
+  - **Doğrulama durumu:** Adaptör, Reddit API belgelerindeki yapıya göre elle hazırlanmış Listing JSON'u ile test edildi. Geliştirme ortamında Reddit kimlik bilgisi yoktu ve `oauth.reddit.com` ağ politikasıyla engelliydi. Token uç noktasına yapılan gerçek bir istekte geçersiz kimlik bilgisinin açık bir hata (HTTP 401) verdiği görüldü. Gönderi okuma canlı çalıştırılmadı; kurulumdan sonra `bulten kaynak-dogrula --slug reddit-sysadmin` ile doğrulayın.
 - **Haberler:** NTV'nin `gundem.rss` adresi kalıcı olarak `turkiye.rss` adresine yönlendiriliyor. Webrazzi `/feed/` yolunu genel ajanlara kapattığı için Türkçe teknoloji haberi için kendi RSS kaynağınızı ekleyebilirsiniz.
 - **Hava uyarıları:** MGM MeteoUyarı için belgelenmiş bir API bulunamadı; ayrıntı için bkz. PLAN.md.
 - **Piyasa:** TCMB gösterge kuru *referans* kurdur ve piyasa kuruyla karıştırılmaz. Bilezik fiyatı 24 ayardan hesaplanmaz; Truncgil işçilik bilgisi vermediği için "kaynak belirtmiyor" yazılır.

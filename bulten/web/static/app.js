@@ -95,7 +95,7 @@
       t.disabled = true; out.textContent = "Test ediliyor…";
       try {
         const d = await post(`/api/kaynak/${t.dataset.testSource}/test`);
-        out.textContent = d.error ? ("Hata: " + d.error)
+        out.textContent = d.error ? ((d.not_configured ? "Yapılandırılmadı: " : "Hata: ") + d.error)
           : `${d.ok ? "Yapı tanındı" : "Yapı TANINMADI"} · ${d.items} kayıt · ${d.duration_ms} ms` +
             (d.warnings && d.warnings.length ? " · Uyarı: " + d.warnings.join("; ") : "") +
             (d.sample && d.sample.length ? " · Örnek: " + d.sample[0] : "");

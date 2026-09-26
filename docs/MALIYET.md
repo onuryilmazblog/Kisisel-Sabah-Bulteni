@@ -18,6 +18,7 @@ ayarlara dayanır. Kendi kullanımınızı **Sistem durumu** sayfasındaki günl
 | LLM özetleri | Anthropic Claude (varsayılan `claude-opus-5`) | Aşağıdaki tabloya bakın |
 | E-posta | Mevcut e-posta hesabınızın SMTP'si veya bir işlem e-postası servisi | Genellikle ücretsiz katman yeterli |
 | Web araması | Brave Search API veya kendi SearXNG örneğiniz | Brave: güncel planı kontrol edin; SearXNG: sunucunuzda ücretsiz |
+| Reddit saha sinyalleri | Reddit Data API, kendi "script" uygulamanız (OAuth) | Reddit'in güncel Data API koşullarını kontrol edin; uygulama OAuth istemcisi başına dakikada 100 istek sınırının çok altında kalır (turda alt forum başına 1–2 istek) |
 | Hava durumu | Open-Meteo | Ticari olmayan kişisel kullanımda ücretsiz (günlük çağrı sınırı içinde) |
 | Piyasa | TCMB (referans, ücretsiz), Truncgil Finans (ücretsiz, resmî değil) veya kendi kaynağınız | Ücretsiz / kaynağa bağlı |
 | Takvim | Google/Outlook "gizli ICS" bağlantısı | Ücretsiz |
