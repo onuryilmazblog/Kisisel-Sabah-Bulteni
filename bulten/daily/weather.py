@@ -11,10 +11,11 @@ from urllib.parse import urlencode
 
 import feedparser
 
+from datetime import datetime
+
 from ..config import load_config
 from ..net.fetcher import Fetcher, FetchError
 from ..timeutil import now_iso, tz
-from datetime import datetime
 
 WMO_TR = {
     0: "Açık", 1: "Çoğunlukla açık", 2: "Parçalı bulutlu", 3: "Kapalı", 45: "Sisli", 48: "Kırağılı sis",
@@ -32,7 +33,8 @@ def geocode(fetcher: Fetcher, query: str, count: int = 8) -> list[dict]:
     cfg = load_config()
     url = f"{cfg.open_meteo_geocoding_base}/v1/search?" + urlencode(
         {"name": query, "count": count, "language": "tr", "format": "json"})
-    res = fetcher.get(url, trusted=True, use_cache=False, accept="application/json")
+    # Etkileşimli arama: kullanıcı beklemesin diye tek deneme.
+    res = fetcher.get(url, trusted=True, use_cache=False, accept="application/json", retries=0)
     data = json.loads(res.text)
     out = []
     for r in data.get("results") or []:
