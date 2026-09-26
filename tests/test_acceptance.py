@@ -418,7 +418,7 @@ def test_worker_restart_and_job_idempotency(tmp_path):
     from bulten.worker.scheduler import Scheduler, run_job
     enable_telegram()
     freeze(2026, 9, 24, 5, 10)  # Perşembe 08:10 İstanbul
-    conn = make_db(tmp_path)
+    make_db(tmp_path)
     enable_telegram()
     ff = FakeFetcher(pages={WRH25: wrh_page([RDS_ISSUE])})
     tg = FakeTelegram()

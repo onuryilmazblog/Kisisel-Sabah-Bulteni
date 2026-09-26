@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: kisisel-sabah-bulteni
+Version: 0.1.0
+Summary: Kişisel Sabah Bülteni: Windows/Intune/ConfigMgr takibi, olay hafızası ve günlük bülten
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.115
+Requires-Dist: uvicorn[standard]>=0.30
+Requires-Dist: jinja2>=3.1
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: httpx>=0.27
+Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: lxml>=5.0
+Requires-Dist: feedparser>=6.0
+Requires-Dist: tzdata>=2024.1
+Requires-Dist: itsdangerous>=2.1
+Requires-Dist: pydantic>=2.6
+Requires-Dist: icalendar>=5.0
+Requires-Dist: recurring-ical-events>=2.2
+Provides-Extra: anthropic
+Requires-Dist: anthropic>=1.0; extra == "anthropic"
+Provides-Extra: youtube
+Requires-Dist: youtube-transcript-api>=0.6; extra == "youtube"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: respx>=0.21; extra == "dev"

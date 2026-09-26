@@ -32,7 +32,8 @@ def weather_lines(view: dict) -> list[str]:
              f"{fmt_num(t.get('min'), 0)}–{fmt_num(t.get('max'), 0)}°, yağış {fmt_num(t.get('precipitation_sum'), 1)} "
              f"{(t.get('units') or {}).get('precipitation', 'mm')}"
              + (f" (olasılık %{t.get('precipitation_probability')})" if t.get("precipitation_probability") is not None else "")]
-    lines.append(f"Veri zamanı: {view['data_time_label']} · Open-Meteo" + (" · ⚠️ güncel değil" if view["stale"] else ""))
+    lines.append(f"Veri zamanı: {view['data_time_label']} · {p.get('provider') or 'Open-Meteo'}"
+                 + (" · ⚠️ güncel değil" if view["stale"] else ""))
     w = p.get("warnings") or {}
     if w.get("items"):
         for it in w["items"][:3]:

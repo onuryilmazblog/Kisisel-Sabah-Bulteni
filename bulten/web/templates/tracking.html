@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import card %}
+{% block title %}Takip Edilen Sorunlar{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+<section class="pagehead"><h1>Takip Edilen Sorunlar</h1>
+<p class="muted">Takibe aldığınız olaylar ve ortamınızı etkileyen çözülmemiş yüksek riskli sorunlar burada görünür kalır; her bültende tekrar gönderilmez.</p></section>
+<h2>Takip ettiklerim ({{ view.followed|length }})</h2>
+{% for c in view.followed %}{{ card(c, tz, compact=True) }}{% else %}<p class="muted">Henüz takip ettiğiniz olay yok. Kartlardaki "Takip et" düğmesini kullanın.</p>{% endfor %}
+<h2>Çözülmemiş yüksek riskler ({{ view.open_risks|length }})</h2>
+{% for c in view.open_risks %}{{ card(c, tz, compact=True) }}{% else %}<p class="muted">Çözülmemiş yüksek riskli sorun yok.</p>{% endfor %}
+{% endblock %}

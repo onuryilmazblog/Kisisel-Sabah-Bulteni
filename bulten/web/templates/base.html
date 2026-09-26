@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf }}">
+<title>{% block title %}Sabah Bülteni{% endblock %}</title>
+<link rel="stylesheet" href="/static/app.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">☀️ Sabah Bülteni</a>
+  <nav class="mainnav">
+    <a href="/" class="{{ 'on' if page == 'bulten' }}">Bugünün Bülteni</a>
+    <a href="/kritik" class="{{ 'on' if page == 'kritik' }}">Kritik Uyarılar{% if nav.critical %} <span class="count">{{ nav.critical }}</span>{% endif %}</a>
+    <a href="/takip" class="{{ 'on' if page == 'takip' }}">Takip Edilen{% if nav.followed %} <span class="count muted">{{ nav.followed }}</span>{% endif %}</a>
+    <a href="/arsiv" class="{{ 'on' if page == 'arsiv' }}">Arşiv</a>
+    <a href="/ayarlar" class="{{ 'on' if page in ('ayarlar', 'kurulum') }}">Ayarlar</a>
+  </nav>
+  <div class="toolbar">
+    <form class="search" action="/arsiv" method="get" role="search">
+      <input type="search" name="q" placeholder="Ara: başlık, KB…" aria-label="Arşivde ara">
+    </form>
+    <button class="btn primary" data-job="check_now" title="Kaynakları şimdi kontrol et">Şimdi kontrol et</button>
+  </div>
+</header>
+{% if not worker_alive %}
+<div class="banner warn">Worker çalışmıyor görünüyor: zamanlanmış kontroller ve gönderimler yapılmaz. <code>bulten worker</code> komutuyla başlatın. <a href="/durum">Durum</a></div>
+{% endif %}
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+<footer class="foot">
+  <a href="/kaynaklar">Kaynaklar ve kapsam</a> · <a href="/durum">Sistem durumu</a>
+  {% if cfg.app_password %}· <form method="post" action="/cikis" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="linkbtn">Çıkış</button></form>{% endif %}
+  <div class="small">Yalnızca yapılandırılmış kaynaklar taranır; internetin tamamı taranmaz. Uygulama hiçbir yama kaldırma veya ortam değişikliği yapmaz.</div>
+</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

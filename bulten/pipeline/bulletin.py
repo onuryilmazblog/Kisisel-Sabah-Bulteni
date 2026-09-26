@@ -40,7 +40,7 @@ def _candidates(conn: sqlite3.Connection, since: str, is_demo: int) -> list[sqli
         " u.read_at, u.read_version, u.muted_at, u.muted_version, COALESCE(u.followed, 0) AS followed "
         "FROM event_versions v JOIN events e ON e.id = v.event_id LEFT JOIN user_event_state u ON u.event_id = e.id "
         "WHERE v.is_major = 1 AND v.created_at > ? AND e.is_demo = ? AND NOT (e.is_baseline = 1 AND v.version = 1) "
-        "ORDER BY v.created_at DESC", (since, is_demo),
+        "ORDER BY v.created_at DESC, v.version DESC", (since, is_demo),
     ).fetchall()
 
 
@@ -214,17 +214,18 @@ def coverage(conn: sqlite3.Connection, hours: int = 26) -> dict:
     }
 
 
-def latest_daily(conn: sqlite3.Connection, module: str, max_age_hours: int = 6) -> int | None:
-    row = conn.execute("SELECT id, fetched_at FROM daily_data WHERE module = ? ORDER BY id DESC LIMIT 1",
-                       (module,)).fetchone()
+def latest_daily(conn: sqlite3.Connection, module: str, is_demo: int = 0) -> int | None:
+    row = conn.execute("SELECT id, fetched_at FROM daily_data WHERE module = ? AND is_demo = ? ORDER BY id DESC LIMIT 1",
+                       (module, is_demo)).fetchone()
     if not row:
         return None
     return row["id"]
 
 
-def compose_bulletin(conn: sqlite3.Connection, *, kind: str = "daily", is_demo: int = 0) -> int:
+def compose_bulletin(conn: sqlite3.Connection, *, kind: str = "daily", is_demo: int = 0,
+                     settings: dict | None = None) -> int:
     """Bülteni oluşturur ve kaydeder. Günlük bülten gün başına bir kez oluşturulur (idempotent)."""
-    settings = get_settings(conn)
+    settings = settings or get_settings(conn)
     tzname = settings.get("timezone")
     local_day = local_date_str(tzname)
     slot = f"{kind}:{local_day}" if kind == "daily" else f"{kind}:{now_iso()}"
@@ -254,7 +255,7 @@ def compose_bulletin(conn: sqlite3.Connection, *, kind: str = "daily", is_demo: 
             "date": local_day, "kind": kind, "generated_at": now_iso(), "window_start": last_daily,
             "sections": [{"key": k, "title": SECTION_TITLES[k], "items": sections[k]} for k in order if k in sections],
             "baseline": bool(base), "tracking": tracking_summary(conn, settings, is_demo),
-            "daily": {m: latest_daily(conn, m) for m in ("weather", "market", "calendar")
+            "daily": {m: latest_daily(conn, m, is_demo) for m in ("weather", "market", "calendar")
                       if module_enabled(settings, {"market": "markets"}.get(m, m))},
             "coverage": coverage(conn), "overflow": overflow,
             "modules": {k: v for k, v in (settings.get("modules") or {}).items()},

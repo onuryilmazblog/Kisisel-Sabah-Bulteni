@@ -1,0 +1,10 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onay</title><link rel="stylesheet" href="/static/app.css"></head>
+<body class="center"><main class="login">
+<h1>İşlemi onaylayın</h1>
+{% if event %}<p><strong>{{ event.title }}</strong></p>{% endif %}
+<p>Yapılacak işlem: <strong>{{ label }}</strong></p>
+<p class="small">Güvenlik: e-posta bağlantısını açmak tek başına durum değiştirmez (e-posta tarayıcıları bağlantıları önceden açabilir).</p>
+<form method="post" action="/eylem/{{ token }}"><button class="btn primary">Onayla</button></form>
+<p><a href="/olay/{{ data.e }}">Olayı uygulamada aç</a></p>
+</main></body></html>

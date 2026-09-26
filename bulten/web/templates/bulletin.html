@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% from "macros.html" import card %}
+{% block title %}Bugünün Bülteni{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+{% if view.is_demo %}
+<div class="banner demo"><strong>DEMO</strong> — Bu bülten kurgusal demo verisinden oluşuyor (KB numaraları gerçek değil). Gerçek veri geldiğinde demo gizlenir.
+  <button class="btn small" data-demo="sil">Demo verisini sil</button></div>
+{% endif %}
+{% if request.query_params.get('kurulum') %}
+<div class="banner ok">Kurulum kaydedildi. İlk kontrol sıraya alındı; ilk taramada eski arşiv gönderilmez, yalnızca açık kritik sorunlardan başlangıç özeti oluşturulur.</div>
+{% endif %}
+<section class="pagehead">
+  <h1>{{ fmt_tr_date(view.content.date) }}</h1>
+  <p class="muted">
+    {% if view.is_preview %}Önizleme: bugünün bülteni henüz oluşturulmadı ({{ settings.bulletin.time }}). Bu liste bir sonraki bültene girecek gelişmelerdir; önizleme "gönderildi" sayılmaz.
+    {% else %}Oluşturuldu: {{ fmt_tr(view.row.created_at, tz) }} · {{ {'daily':'Günlük bülten','manual':'Anlık bülten'}.get(view.row.kind, view.row.kind) }}{% endif %}
+  </p>
+  <div class="row-btns">
+    <button class="btn" data-job="send_preview" title="Şu anki gelişmelerle anlık bülten oluştur ve kanallara gönder">Bülteni şimdi gönder</button>
+    {% if not view.is_demo and not view.sections %}<button class="btn" data-demo="yukle">Demo verisi yükle</button>{% endif %}
+  </div>
+</section>
+
+{% set cov = view.coverage %}
+{% if cov and cov.failing %}
+<div class="banner warn">
+  <strong>Kapsam uyarısı:</strong> {{ cov.failing|length }} kaynağa son kontrolde erişilemedi veya sayfa yapısı tanınmadı:
+  {% for f in cov.failing[:6] %}{{ f.name }}{% if not loop.last %}, {% endif %}{% endfor %}{% if cov.failing|length > 6 %} …{% endif %}.
+  Bu kaynaklarda yeni sorun olmadığı anlamına gelmez. <a href="/kaynaklar">Kaynaklar</a>
+</div>
+{% endif %}
+
+{% if view.content.baseline %}<div class="banner info">İlk bülten: eski arşiv gönderilmedi. Aşağıdaki "Başlangıç özeti" yalnızca açık kritik sorunları içerir; diğer kayıtlar arşivde.</div>{% endif %}
+
+{% if view.daily %}
+<section class="daily">
+  {% set w = view.daily.get('weather') %}
+  {% if 'weather' in view.daily %}
+  <div class="tile">
+    <h2>Hava durumu</h2>
+    {% if not w %}<p class="muted">Veri henüz alınmadı.</p>
+    {% elif w.status == 'error' %}<p class="muted">{{ w.error }}</p>
+    {% else %}
+      {% set p = w.payload %}
+      <p class="big">{{ p.current.temperature|trnum(1) }}{{ p.current.units.temperature }} <span class="muted small">hissedilen {{ p.current.apparent|trnum(1) }}{{ p.current.units.temperature }}</span></p>
+      <p>{{ p.location }}{% if p.admin1 %}, {{ p.admin1 }}{% endif %} · {{ p.current.description }}</p>
+      <p>Bugün {{ p.today.min|trnum(0) }}–{{ p.today.max|trnum(0) }}{{ p.today.units.temperature }} · Yağış {{ p.today.precipitation_sum|trnum(1) }} {{ p.today.units.precipitation }}{% if p.today.precipitation_probability is not none %} (olasılık %{{ p.today.precipitation_probability }}){% endif %}</p>
+      <p class="small">Veri zamanı: {{ w.data_time_label }} · {{ p.provider }}{% if w.stale %} · <strong class="warn-text">güncel değil</strong>{% endif %}</p>
+      {% if p.warnings and p.warnings['items'] %}{% for it in p.warnings['items'] %}<p class="warn-text">⚠️ {{ it.title }}</p>{% endfor %}
+      {% else %}<p class="small">{{ p.warnings.note if p.warnings else '' }} {% if p.warnings_link %}<a href="{{ p.warnings_link }}" target="_blank" rel="noopener">MGM MeteoUyarı</a>{% endif %}</p>{% endif %}
+    {% endif %}
+  </div>
+  {% endif %}
+  {% if 'market' in view.daily %}
+  {% set m = view.daily.get('market') %}
+  <div class="tile">
+    <h2>Piyasalar</h2>
+    {% if not m %}<p class="muted">Veri henüz alınmadı.</p>
+    {% elif not m.payload.blocks %}<p class="muted">{{ m.error or 'Veri alınamadı.' }}</p>
+    {% else %}
+      {% for b in m.payload.blocks %}
+      <table class="mkt">
+        <caption>{{ b.provider_label }}<br><span class="small">Veri zamanı: {{ b.data_time_label }}{% if b.stale %} · <strong class="warn-text">güncel değil</strong>{% endif %}</span></caption>
+        {% for key, item in b['items'].items() %}
+        <tr><th>{{ item.label }}<br><span class="small">{{ item.unit }}{% if item.workmanship %} · {{ item.workmanship }}{% endif %}</span></th>
+          <td>{% for pt, val in item.prices.items() %}{% if val is not none %}<div>{{ pt }}: <strong>{{ val|trnum(4 if key in ('USDTRY','EURTRY') else 2) }}</strong>
+            {% set ch = (m.changes.get(b.provider) or {}).get(key, {}).get(pt) %}{% if ch %}<span class="{{ 'up' if ch.diff >= 0 else 'down' }}">{{ '+' if ch.pct >= 0 else '' }}{{ ch.pct|trnum(2) }}%</span>{% endif %}</div>{% endif %}{% endfor %}</td></tr>
+        {% endfor %}
+      </table>
+      {% endfor %}
+      {% for miss in m.payload.missing %}<p class="small">{{ miss }}: doğrudan veri yok (başka bir değerden hesaplanmadı).</p>{% endfor %}
+      {% for e in m.payload.errors %}<p class="small warn-text">{{ e }}</p>{% endfor %}
+      <p class="small">Değişim: yalnızca aynı kaynak ve fiyat türü için önceki bültene göre.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% if 'calendar' in view.daily %}
+  {% set c = view.daily.get('calendar') %}
+  <div class="tile">
+    <h2>Takvim</h2>
+    {% if not c %}<p class="muted">Veri henüz alınmadı.</p>
+    {% elif c.status == 'error' %}<p class="muted">{{ c.error }}</p>
+    {% elif not c.payload.events %}<p class="muted">Bugün etkinlik yok.</p>
+    {% else %}<ul class="cal">{% for e in c.payload.events %}<li><strong>{{ e.start_local }}</strong> {{ e.summary }}{% if e.location %} <span class="muted">({{ e.location }})</span>{% endif %}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if view.tracking and view.tracking.open_count %}
+<p class="tracking-line">📌 Takipteki çözülmemiş riskler: <strong>{{ view.tracking.open_count }}</strong> — <a href="/takip">Takip Edilen Sorunlar</a></p>
+{% endif %}
+
+{% for sec in view.sections %}
+<section class="sec sec-{{ sec.key }}">
+  <h2>{{ sec.title }} <span class="muted">({{ sec.cards|length }})</span></h2>
+  {% for c in sec.cards %}{{ card(c, tz) }}{% endfor %}
+</section>
+{% else %}
+<section class="empty">
+  <p>Son bültenden bu yana seçili modüllerde yeni gelişme yok.</p>
+  <p class="muted">Takip edilen konular ve arşiv için üst menüyü kullanın.</p>
+</section>
+{% endfor %}
+{% if view.content.overflow %}<p class="muted">{{ view.content.overflow }} gelişme bülten sınırına sığmadı; <a href="/arsiv?read=unread">arşivde okunmamış</a> duruyor.</p>{% endif %}
+
+{% if history %}
+<details class="history"><summary>Önceki bültenler</summary>
+<ul>{% for h in history %}<li><a href="/?b={{ h.id }}">{{ fmt_tr_date(h.bulletin_date) }}</a> <span class="muted">{{ {'daily':'günlük','manual':'anlık'}.get(h.kind, h.kind) }} · {{ fmt_tr(h.created_at, tz) }}</span></li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endblock %}

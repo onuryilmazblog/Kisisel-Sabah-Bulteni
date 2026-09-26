@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "macros.html" import card %}
+{% block title %}Kritik Uyarılar{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+<section class="pagehead">
+  <h1>Kritik Uyarılar</h1>
+  <p class="muted">Son 21 günde yüksek/kritik riskli ve ortamınızla ilgili gelişmeler. Risk seviyesi ile teyit düzeyi ayrı gösterilir.
+  Kritik alarm modu: <strong>{{ 'açık' if view.critical.enabled else 'kapalı' }}</strong>{% if view.critical.enabled %} (her {{ view.critical.interval_min }} dk; eşik: risk ≥ {{ RISK_TR.get(view.critical.min_risk) }}, teyit ≥ {{ EVIDENCE_LABELS.get(view.critical.min_evidence) }}){% endif %}. <a href="/ayarlar#bildirim">Ayarla</a></p>
+</section>
+{% for c in view.cards %}{{ card(c, tz) }}{% else %}<p class="empty">Şu anda kritik uyarı yok.</p>{% endfor %}
+{% if view.alerts %}
+<h2>Gönderilen kritik alarmlar</h2>
+<table class="grid"><tr><th>Zaman</th><th>Kanal</th><th>Durum</th><th>Öğe</th></tr>
+{% for a in view.alerts %}<tr><td>{{ fmt_tr(a.created_at, tz) }}</td><td>{{ a.channel }}</td><td>{{ a.status }}</td><td>{{ a.n }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Kurulum' if wizard else 'Ayarlar' }}{% endblock %}
+{% block content %}
+{% set s = settings %}
+<section class="pagehead">
+  <h1>{{ 'İlk kurulum' if wizard else 'Ayarlar' }}</h1>
+  {% if wizard %}<p>Konumunuzu, izlediğiniz ürün sürümlerini ve bildirim tercihlerinizi seçin. Uygulama bunları tahmin etmez; seçmediğiniz alanlar "belirtilmedi" olarak kalır ve ilgili modül bu bilgiye ihtiyaç duyarsa bunu açıkça gösterir.</p>{% endif %}
+</section>
+{% if error %}<div class="banner warn">{{ error }}</div>{% endif %}
+{% if ok %}<div class="banner ok">Ayarlar kaydedildi.</div>{% endif %}
+<form method="post" action="{{ '/kurulum' if wizard else '/ayarlar' }}" class="settings">
+<input type="hidden" name="_csrf" value="{{ csrf }}">
+{% for sec in ['genel','moduller','ortam','konum','bildirim','icerik'] %}<input type="hidden" name="_sections" value="{{ sec }}">{% endfor %}
+
+<fieldset id="ortam"><legend>1. Ortamınız</legend>
+  <p class="help">İzlediğiniz Windows sürümleri (Release health, güncelleme geçmişi ve KB sayfaları buna göre taranır):</p>
+  <div class="checks">{% for p in products %}<label class="chk"><input type="checkbox" name="products" value="{{ p.id }}" {{ 'checked' if p.id in s.products }}> {{ p.label }}</label>{% endfor %}</div>
+  <p class="help">Ortamınızdaki roller (risk önceliklendirmesi ve "Beni neden ilgilendiriyor?" için):</p>
+  <div class="checks">{% for k, v in roles.items() %}<label class="chk"><input type="checkbox" name="roles" value="{{ k }}" {{ 'checked' if k in s.roles }}> {{ v }}</label>{% endfor %}</div>
+  <label>ConfigMgr sürümünüz
+    <select name="configmgr_version"><option value="">Belirtilmedi</option>{% for v in cm_versions %}<option value="{{ v }}" {{ 'selected' if s.configmgr_version == v }}>{{ v }}</option>{% endfor %}</select></label>
+  <div class="checks">ConfigMgr kanalları:
+    {% for k, v in {'current':'Current Branch','early_ring':'Early update ring','hotfix':'Hotfix/rollup','tp':'Technical Preview'}.items() %}<label class="chk"><input type="checkbox" name="configmgr_tracks" value="{{ k }}" {{ 'checked' if k in s.configmgr_tracks }}> {{ v }}</label>{% endfor %}</div>
+  <div class="checks">Intune platformları:
+    {% for k, v in intune_platforms.items() %}<label class="chk"><input type="checkbox" name="intune_platforms" value="{{ k }}" {{ 'checked' if k in s.intune_platforms }}> {{ v }}</label>{% endfor %}</div>
+</fieldset>
+
+<fieldset id="moduller"><legend>2. Modüller</legend>
+  <div class="checks">
+  {% for k, v in {'windows':'Windows istemci/sunucu','intune':'Intune','configmgr':'ConfigMgr (SCCM)','community':'Saha sinyalleri (topluluk/basın/web araması)','weather':'Hava durumu','markets':'Piyasalar','news':'Haberler','content':'Blog/RSS ve YouTube','calendar':'Takvim'}.items() %}
+  <label class="chk"><input type="checkbox" name="mod_{{ k }}" {{ 'checked' if s.modules.get(k) }}> {{ v }}</label>{% endfor %}
+  </div>
+</fieldset>
+
+<fieldset id="konum"><legend>3. Konum (hava durumu)</legend>
+  <p class="help">Şehir veya ilçe adı yazıp listeden seçin. Mevcut: <strong id="loc-current">{% if s.location %}{{ s.location.name }}{% if s.location.admin1 %}, {{ s.location.admin1 }}{% endif %}{% else %}seçilmedi{% endif %}</strong></p>
+  <div class="loc"><input type="search" id="loc-q" placeholder="örn. Kadıköy"> <button type="button" class="btn" id="loc-search">Ara</button></div>
+  <ul id="loc-results" class="loc-results"></ul>
+  <input type="hidden" name="location_json" id="location_json" value="">
+  <label>İlçe notu (isteğe bağlı) <input type="text" name="district" value="{{ s.location.district if s.location and s.location.district else '' }}"></label>
+  <label class="chk"><input type="checkbox" name="location_clear"> Konumu temizle</label>
+  <label>Resmî uyarı: MGM il sayfası veya CAP/Atom uyarı beslemesi adresi (isteğe bağlı)
+    <input type="url" name="mgm_warning_url" value="{{ s.mgm_warning_url }}" placeholder="https://www.mgm.gov.tr/meteouyari/…"></label>
+  <p class="help">MGM uyarıları için belgelenmiş bir API bulunamadı; bir besleme adresi vermezseniz bültende uyarı bağlantısı gösterilir.</p>
+</fieldset>
+
+<fieldset id="genel"><legend>4. Bülten zamanı</legend>
+  <label>Saat dilimi <input type="text" name="timezone" value="{{ s.timezone }}"></label>
+  <label>Bülten saati <input type="time" name="bulletin_time" value="{{ s.bulletin.time }}"></label>
+  <label>Kaçırılırsa en geç <input type="time" name="catch_up_until" value="{{ s.bulletin.catch_up_until }}"></label>
+  <label class="chk"><input type="checkbox" name="bulletin_weekend" {{ 'checked' if s.bulletin.weekend }}> Hafta sonu da gönder</label>
+  <label>Uzunluk <select name="bulletin_length">{% for k, v in {'kisa':'Kısa (~3 dk)','orta':'Orta (~4 dk)','uzun':'Uzun (~5 dk)'}.items() %}<option value="{{ k }}" {{ 'selected' if s.bulletin.length == k }}>{{ v }}</option>{% endfor %}</select></label>
+  <label class="chk"><input type="checkbox" name="quiet_enabled" {{ 'checked' if s.quiet_hours.enabled }}> Sessiz saatler</label>
+  <label>Başlangıç <input type="time" name="quiet_start" value="{{ s.quiet_hours.start }}"></label>
+  <label>Bitiş <input type="time" name="quiet_end" value="{{ s.quiet_hours.end }}"></label>
+</fieldset>
+
+<fieldset id="bildirim"><legend>5. Bildirimler</legend>
+  <label class="chk"><input type="checkbox" name="ch_telegram" {{ 'checked' if s.channels.telegram }}> Telegram{% if not cfg.telegram_bot_token %} <span class="warn-text">(sunucuda TELEGRAM_BOT_TOKEN tanımlı değil)</span>{% endif %}</label>
+  <label>Telegram sohbet kimliği (chat id) <input type="text" name="telegram_chat_id" value="{{ s.telegram_chat_id }}" inputmode="numeric" placeholder="Botunuza /start yazın; bot kimliği yanıtlar"></label>
+  <label class="chk"><input type="checkbox" name="ch_email" {{ 'checked' if s.channels.email }}> E-posta{% if not cfg.email_configured %} <span class="warn-text">(sunucuda SMTP ayarları eksik)</span>{% endif %}</label>
+  <label>E-posta alıcısı <input type="email" name="email_to" value="{{ s.email_to }}"></label>
+  {% if not wizard %}<div class="row-btns"><button type="button" class="btn" data-job="test_telegram">Telegram test</button> <button type="button" class="btn" data-job="test_email">E-posta test</button></div>{% endif %}
+  <h3>Kritik alarm modu</h3>
+  <label class="chk"><input type="checkbox" name="crit_enabled" {{ 'checked' if s.critical.enabled }}> Açık</label>
+  <label>Kontrol aralığı (dk) <input type="number" name="crit_interval" min="15" max="1440" value="{{ s.critical.interval_min }}"></label>
+  <label>En düşük risk <select name="crit_min_risk">{% for k in ['medium','high','critical'] %}<option value="{{ k }}" {{ 'selected' if s.critical.min_risk == k }}>{{ RISK_TR[k] }}</option>{% endfor %}</select></label>
+  <label>En düşük teyit <select name="crit_min_evidence">{% for k in ['field','ms_official','ms_known_issue'] %}<option value="{{ k }}" {{ 'selected' if s.critical.min_evidence == k }}>{{ EVIDENCE_LABELS[k] }}</option>{% endfor %}</select></label>
+  <label class="chk"><input type="checkbox" name="crit_allow_field" {{ 'checked' if s.critical.allow_field }}> Teyitsiz ama kritik saha sinyallerini de bildir (teyitsiz olduğu belirtilir)</label>
+  <label>…en az bağımsız kaynak <input type="number" name="crit_field_min_sources" min="1" max="10" value="{{ s.critical.field_min_sources }}"></label>
+  <label>Sessiz saat istisnası <select name="crit_quiet_exception">
+    {% for k, v in {'none':'Yok (sabaha bırak)','ms_critical':'Microsoft teyitli kritik sorunlar','all_critical':'Tüm kritik sorunlar'}.items() %}<option value="{{ k }}" {{ 'selected' if s.critical.quiet_exception == k }}>{{ v }}</option>{% endfor %}</select></label>
+  <label class="chk"><input type="checkbox" name="crit_morning_reference" {{ 'checked' if s.critical.morning_reference }}> Gece bildirilen değişmemiş içeriği sabah kısa referans olarak göster</label>
+  <h3>Okunan/susturulan olayların yeni gelişmeleri</h3>
+  <label>Okunan olay güncellenirse <select name="resurface_read">{% for k, v in {'notify':'Bildir (bülten + alarm)','bulletin_only':'Yalnızca bültende','silent':'Bildirme (arşivde)'}.items() %}<option value="{{ k }}" {{ 'selected' if s.resurface.read == k }}>{{ v }}</option>{% endfor %}</select></label>
+  <label>Susturulan olay güncellenirse <select name="resurface_muted">{% for k, v in {'silent':'Bildirme','critical_only':'Yalnızca kritikse','notify':'Bildir'}.items() %}<option value="{{ k }}" {{ 'selected' if s.resurface.muted == k }}>{{ v }}</option>{% endfor %}</select></label>
+</fieldset>
+
+<fieldset id="icerik"><legend>6. İçerik, filtreler ve kaynaklar</legend>
+  <h3>Kategori başına en fazla öğe</h3>
+  <div class="limits">{% for k, v in s.category_limits.items() %}<label>{{ {'windows':'Windows','intune':'Intune','configmgr':'ConfigMgr','community':'Saha','news_turkiye':'Türkiye','news_dunya':'Dünya','news_genel':'Genel','news_teknoloji':'Teknoloji','content':'Blog/Video'}.get(k, k) }} <input type="number" min="0" max="20" name="limit_{{ k }}" value="{{ v }}"></label>{% endfor %}</div>
+  <label>Haber kategorileri</label>
+  <div class="checks">{% for k, v in news_categories.items() %}<label class="chk"><input type="checkbox" name="news_categories" value="{{ k }}" {{ 'checked' if k in s.news_categories }}> {{ v }}</label>{% endfor %}</div>
+  <label>Anahtar kelimeler (öne çıkar; virgül veya satır) <textarea name="keywords" rows="2">{{ s.keywords|join(', ') }}</textarea></label>
+  <label>Hariç tutulacak kelimeler <textarea name="exclude_keywords" rows="2">{{ s.exclude_keywords|join(', ') }}</textarea></label>
+  <label>Ek takip konuları (web araması sorgusu olarak da kullanılır) <textarea name="topics" rows="2">{{ s.topics|join(', ') }}</textarea></label>
+  <h3>Piyasalar</h3>
+  <div class="checks">{% for k, v in {'USDTRY':'USD/TRY','EURTRY':'EUR/TRY','GRAM24':'Gram altın (24 ayar)','BILEZIK22':'22 ayar bilezik'}.items() %}<label class="chk"><input type="checkbox" name="market_items" value="{{ k }}" {{ 'checked' if k in s.markets['items'] }}> {{ v }}</label>{% endfor %}</div>
+  <label class="chk"><input type="checkbox" name="show_tcmb" {{ 'checked' if s.markets.show_tcmb }}> TCMB gösterge (referans) kurunu ayrıca göster</label>
+  <label>Piyasa fiyat kaynağı <select name="market_provider">{% for k, v in {'truncgil':'Truncgil Finans (ücretsiz)','json':'Kendi JSON kaynağım (.env)','none':'Yok'}.items() %}<option value="{{ k }}" {{ 'selected' if s.markets.provider == k }}>{{ v }}</option>{% endfor %}</select></label>
+  <h3>Takvim ve YouTube</h3>
+  <label>Takvim ICS adresi (salt okunur "gizli iCal" bağlantısı) <input type="url" name="calendar_ics_url" value="{{ s.calendar_ics_url }}" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"></label>
+  <label>YouTube kanalları (her satıra: <code>UC… | Ad</code>) <textarea name="youtube_channels" rows="3">{% for c in s.youtube_channels %}{{ c.id }} | {{ c.name }}
+{% endfor %}</textarea></label>
+  <label>İlk bültendeki başlangıç özeti en fazla <input type="number" name="baseline_max_items" min="0" max="30" value="{{ s.baseline_max_items }}"></label>
+  <p class="help">Blog/RSS ve topluluk kaynakları eklemek için: <a href="/kaynaklar">Kaynaklar</a>.</p>
+</fieldset>
+
+<div class="save-bar"><button class="btn primary" type="submit">{{ 'Kurulumu tamamla' if wizard else 'Kaydet' }}</button></div>
+</form>
+{% if wizard %}
+<p class="muted">Denemek için önce <button class="btn small" data-demo="yukle">Demo verisi yükleyebilirsiniz</button> (açıkça "Demo" etiketlidir).</p>
+{% endif %}
+{% endblock %}

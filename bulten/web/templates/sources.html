@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Kaynaklar{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+<section class="pagehead"><h1>Kaynaklar ve tarama kapsamı</h1>
+<p class="muted">Yalnızca aşağıdaki etkin kaynaklar{% if cfg.search_configured %} ve {{ cfg.search_provider }} web araması{% else %} (web araması yapılandırılmadı){% endif %} taranır; internetin tamamı taranmaz. Bir kaynağa erişilememesi "yeni sorun yok" anlamına gelmez.</p></section>
+{% if error %}<div class="banner warn">{{ error }}</div>{% endif %}
+{% if ok %}<div class="banner ok">Kaynak eklendi.</div>{% endif %}
+<div class="table-wrap">
+<table class="grid sources">
+<tr><th>Kaynak</th><th>Tür</th><th>Güven</th><th>Son başarılı kontrol</th><th>Son durum</th><th></th></tr>
+{% for s in sources %}
+<tr class="{{ 'off' if not s.enabled }}" data-source="{{ s.id }}">
+  <td><strong>{{ s.name }}</strong><br><a class="small" href="{{ s.url }}" target="_blank" rel="noopener noreferrer">{{ s.url[:70] }}</a>
+    {% if s.fetch_url and s.fetch_url != s.url %}<br><span class="small">Okuma: {{ s.fetch_url[:70] }}</span>{% endif %}
+    {% if s.validation_note %}<br><span class="small muted">{{ s.validation_note }}</span>{% endif %}</td>
+  <td>{{ s.adapter_label }}{% if s.category %}<br><span class="small">{{ s.category }}</span>{% endif %}{% if s.critical %}<br><span class="badge">kritik kontrol</span>{% endif %}</td>
+  <td>{{ {'official':'Resmî','press':'Basın','community':'Topluluk','user':'Kullanıcı','unknown':'Değişken'}.get(s.trust, s.trust) }}</td>
+  <td>{{ fmt_tr(s.last_ok, tz) if s.last_ok else '—' }}</td>
+  <td>{% if s.last_status %}<span class="st st-{{ s.last_status }}">{{ {'ok':'Başarılı','not_modified':'Değişmedi','error':'Hata','parse_warning':'Yapı tanınmadı','running':'Çalışıyor'}.get(s.last_status, s.last_status) }}</span>
+    {% if s.last_items is not none %}<span class="small"> · {{ s.last_items }} kayıt</span>{% endif %}
+    {% if s.last_error %}<br><span class="small warn-text">{{ s.last_error[:220] }}</span>{% endif %}{% else %}<span class="muted">henüz kontrol edilmedi</span>{% endif %}
+    <div class="test-result small"></div></td>
+  <td class="nowrap"><button class="btn small" data-test-source="{{ s.id }}">Test et</button>
+    <button class="btn small" data-toggle-source="{{ s.id }}" data-on="{{ 0 if s.enabled else 1 }}">{{ 'Kapat' if s.enabled else 'Aç' }}</button></td>
+</tr>
+{% endfor %}
+</table>
+</div>
+<section class="panel">
+<h2>Kaynak ekle (RSS/Atom)</h2>
+<form method="post" action="/kaynaklar/ekle" class="inline-form">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <label>Ad <input type="text" name="name" required maxlength="120"></label>
+  <label>Besleme adresi <input type="url" name="url" required placeholder="https://…/feed"></label>
+  <label>Modül <select name="module">
+    <option value="community">Saha sinyali (topluluk/basın)</option><option value="content">Blog/RSS içerik</option>
+    <option value="news">Haber</option><option value="windows">Windows (resmî blog)</option><option value="intune">Intune (resmî blog)</option><option value="configmgr">ConfigMgr (resmî blog)</option></select></label>
+  <label>Haber kategorisi <select name="category"><option value="">—</option>{% for k, v in news_categories.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></label>
+  <label>Güven <select name="trust"><option value="user">Kullanıcı kaynağı</option><option value="press">Basın</option><option value="community">Topluluk</option><option value="official">Resmî Microsoft (yalnızca Microsoft resmî adresleri için kabul edilir)</option></select></label>
+  <button class="btn primary">Ekle</button>
+  <p class="help">Güvenlik: yalnızca http/https, 80/443 portları ve genel internet adresleri kabul edilir; yerel/özel ağ adresleri reddedilir. Bir Microsoft alan adındaki topluluk sayfaları (Q&amp;A, Tech Community tartışmaları) resmî sayılmaz.</p>
+</form>
+</section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Sistem durumu{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+{% set v = view %}
+<section class="pagehead"><h1>Sistem durumu</h1></section>
+<div class="grid2">
+<section class="panel">
+  <h2>Worker</h2>
+  <p>Durum: <strong class="{{ '' if v.worker_alive else 'warn-text' }}">{{ 'çalışıyor' if v.worker_alive else 'çalışmıyor' }}</strong> · son nabız: {{ fmt_tr(v.worker_heartbeat, tz) if v.worker_heartbeat else '—' }}</p>
+  <p>Son kontrol: {{ fmt_tr(v.last_check, tz) if v.last_check else '—' }} · son başarılı kontrol: {{ fmt_tr(v.last_success, tz) if v.last_success else '—' }}</p>
+  <p>Başlangıç taraması: {{ fmt_tr(v.baseline_at, tz) if v.baseline_at else 'henüz tamamlanmadı' }}</p>
+  <p>Telegram (mod: {{ v.cfg.telegram_mode }}) son yoklama: {{ fmt_tr(v.telegram_poll_at, tz) if v.telegram_poll_at else '—' }}</p>
+</section>
+<section class="panel">
+  <h2>Kurulum gereksinimleri</h2>
+  {% for level, msg in v.requirements %}<p class="{{ 'warn-text' if level == 'warn' else 'muted' }}">{{ '⚠️' if level == 'warn' else 'ℹ️' }} {{ msg }}</p>{% else %}<p>Eksik yapılandırma yok.</p>{% endfor %}
+  {% for p in v.channel_problems %}<p class="warn-text">⚠️ {{ p }}</p>{% endfor %}
+</section>
+<section class="panel">
+  <h2>Kullanım ve bütçe (bugün)</h2>
+  <p>LLM: {{ v.cfg.llm_provider }} / {{ v.cfg.llm_model or '—' }} — {{ v.llm_today.calls }} çağrı / {{ v.cfg.llm_calls }}, tahmini ${{ '%.3f'|format(v.llm_today.cost) }} / ${{ v.cfg.llm_budget }}</p>
+  <p>Web araması: {{ v.cfg.search_provider }} — {{ v.search_today.units }} / {{ v.cfg.search_limit }} sorgu</p>
+  {% if v.usage %}<table class="grid"><tr><th>Gün</th><th>Tür</th><th>Sağlayıcı</th><th>Çağrı</th><th>Token (g/ç)</th><th>Maliyet</th><th>Hata</th></tr>
+  {% for u in v.usage %}<tr><td>{{ u.day }}</td><td>{{ u.kind }}</td><td>{{ u.provider }}</td><td>{{ u.calls }}</td><td>{{ u.tin }}/{{ u.tout }}</td><td>${{ u.cost }}</td><td>{{ u.errors }}</td></tr>{% endfor %}</table>{% endif %}
+</section>
+<section class="panel">
+  <h2>Tarama kapsamı</h2>
+  <p>{{ v.coverage.ok }} / {{ v.coverage.enabled }} etkin kaynak son 26 saatte başarıyla kontrol edildi; {{ v.coverage.failing|length }} kaynakta hata; {{ v.coverage.never_checked }} kaynak hiç kontrol edilmedi.</p>
+  <p class="small">{{ v.coverage.scope_note }}</p>
+</section>
+</div>
+<section class="panel">
+  <h2>Son gönderimler</h2>
+  <div class="table-wrap"><table class="grid"><tr><th>#</th><th>Oluşturma</th><th>Kanal</th><th>Tür</th><th>Durum</th><th>Parça</th><th>Deneme</th><th>Hata</th><th></th></tr>
+  {% for d in v.deliveries %}<tr><td>{{ d.id }}</td><td>{{ fmt_tr(d.created_at, tz) }}</td><td>{{ d.channel }}</td><td>{{ d.kind }}</td><td>{{ d.status }}</td><td>{{ d.parts_sent }}/{{ d.parts }}</td><td>{{ d.attempts }}</td><td class="small">{{ (d.last_error or '')[:120] }}</td>
+    <td>{% if d.status in ('uncertain', 'failed', 'partial') %}<button class="btn small" data-resend="{{ d.id }}" title="Belirsiz/başarısız parçaları yeniden gönder (kopya oluşabilir)">Yeniden gönder</button>{% endif %}</td></tr>{% else %}<tr><td colspan="9" class="muted">Henüz gönderim yok.</td></tr>{% endfor %}
+  </table></div>
+  <p class="small">"Belirsiz": istek gönderildi ama yanıt alınamadı; mesaj ulaşmış olabileceği için otomatik yeniden gönderilmez.</p>
+</section>
+<section class="panel">
+  <h2>İşler</h2>
+  <div class="table-wrap"><table class="grid"><tr><th>İş</th><th>Dilim</th><th>Durum</th><th>Deneme</th><th>Başlangıç</th><th>Ayrıntı</th></tr>
+  {% for j in v.jobs %}<tr><td>{{ j.job }}</td><td>{{ j.slot }}</td><td>{{ j.status }}</td><td>{{ j.attempt }}</td><td>{{ fmt_tr(j.started_at, tz) }}</td><td class="small">{{ (j.detail or '')[:200] }}</td></tr>{% endfor %}
+  </table></div>
+  <h3>Elle istenen işler</h3>
+  <div class="table-wrap"><table class="grid"><tr><th>İş</th><th>İstenme</th><th>Durum</th><th>Ayrıntı</th></tr>
+  {% for r in v.requests %}<tr><td>{{ r.job }}</td><td>{{ fmt_tr(r.requested_at, tz) }}</td><td>{{ r.status }}</td><td class="small">{{ (r.detail or '')[:200] }}</td></tr>{% endfor %}
+  </table></div>
+</section>
+{% endblock %}

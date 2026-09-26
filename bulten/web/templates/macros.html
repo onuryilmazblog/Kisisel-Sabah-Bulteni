@@ -1,0 +1,50 @@
+{% macro card(c, tz, compact=False) -%}
+<article class="card risk-{{ c.risk or 'none' }}{% if c.is_read %} is-read{% endif %}{% if c.is_muted %} is-muted{% endif %}" data-event="{{ c.event_id }}" data-version="{{ c.version }}">
+  <div class="card-head">
+    <div class="badges">
+      <span class="badge mod">{{ c.module_label }} · {{ c.kind_label }}</span>
+      {% for b in c.badges %}<span class="badge {{ b.kind }}">{{ b.text }}</span>{% endfor %}
+      {% if c.version > 1 %}<span class="badge upd">Güncelleme #{{ c.version }}</span>{% endif %}
+      {% if c.is_read %}<span class="badge state">Okundu</span>{% endif %}
+      {% if c.is_followed %}<span class="badge state">Takipte</span>{% endif %}
+      {% if c.is_muted %}<span class="badge state">Susturuldu</span>{% endif %}
+    </div>
+    <h3><a href="/olay/{{ c.event_id }}">{{ c.title }}</a></h3>
+    {% if c.kbs or c.products %}<div class="scope">{% for k in c.kbs[:5] %}<span class="kb">KB{{ k }}</span>{% endfor %}{% if c.products %} {{ c.products[:5]|join(', ') }}{% endif %}</div>{% endif %}
+  </div>
+  {% if c.mode == 'reference' %}
+    <p class="muted">Gece kritik alarm olarak bildirildi; o zamandan beri değişmedi.</p>
+  {% else %}
+    {% if c.what_changed %}<p class="changed"><strong>Ne değişti?</strong> {{ c.what_changed }}</p>{% endif %}
+    <p class="summary">{{ c.summary }}</p>
+    {% if c.why %}<p class="why"><strong>Beni neden ilgilendiriyor?</strong> {{ c.why }}</p>{% endif %}
+    {% if c.actions %}
+    <ul class="actions">
+      {% for a in c.actions %}<li><span class="basis basis-{{ a.basis }}">{{ a.basis_label }}</span> {{ a.text }}{% if a.evidence_quote %}<q class="quote">{{ a.evidence_quote }}</q>{% endif %}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if not compact %}
+    <details class="more">
+      <summary>Ayrıntılar ve kaynaklar</summary>
+      {% if c.details %}<p class="details">{{ c.details }}</p>{% endif %}
+      <ul class="links">
+        {% for l in c.links %}<li><a href="{{ l.url }}" rel="noopener noreferrer" target="_blank">{{ l.source or 'Kaynak' }}</a>{% if l.trust %} <span class="small">({{ {'official':'resmî','press':'basın','community':'topluluk'}.get(l.trust, l.trust) }})</span>{% endif %} — {{ l.title }}</li>{% endfor %}
+      </ul>
+      <p class="small">{% if c.ai %}AI özeti ({{ c.summary_source[4:] }}). {% else %}AI özeti yok — şablon özet. {% endif %}{{ c.summary_note }}</p>
+    </details>
+    {% endif %}
+  {% endif %}
+  <div class="card-foot">
+    <span class="times">
+      {% if c.published_at %}Yayın: {{ fmt_tr(c.published_at, tz) }} · {% endif %}
+      Anlamlı güncelleme: {{ fmt_tr(c.meaningful_update_at, tz) }}{% if c.last_checked_at %} · Son kontrol: {{ fmt_tr(c.last_checked_at, tz) }}{% endif %}
+    </span>
+    <span class="btns">
+      {% if c.primary_url %}<a class="btn small" href="{{ c.primary_url }}" target="_blank" rel="noopener noreferrer">Kaynak</a>{% endif %}
+      {% if c.is_read %}<button class="btn small" data-act="unread">Okunmadı</button>{% else %}<button class="btn small" data-act="read">Okudum</button>{% endif %}
+      {% if c.is_followed %}<button class="btn small" data-act="unfollow">Takipten çık</button>{% else %}<button class="btn small" data-act="follow">Takip et</button>{% endif %}
+      {% if c.is_muted %}<button class="btn small" data-act="unmute">Susturmayı kaldır</button>{% else %}<button class="btn small" data-act="mute">Sustur</button>{% endif %}
+    </span>
+  </div>
+</article>
+{%- endmacro %}

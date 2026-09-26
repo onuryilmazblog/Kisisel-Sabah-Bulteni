@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "macros.html" import card %}
+{% block title %}{{ d.card.title if d.card else 'Olay' }}{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+<p><a href="/arsiv" class="muted" data-back>← Geri</a></p>
+{% if d.card %}{{ card(d.card, tz) }}{% endif %}
+<section class="panel">
+  <h2>Teyit ve risk</h2>
+  <p><strong>Teyit düzeyi:</strong> {{ d.evidence_label or '—' }}{% if d.event.kind == 'issue' %}
+    {% if d.event.evidence_level == 'ms_official' %} — Known issues kaydında bulunamadı{% if d.ki_checked %} (son Known issues kontrolü: {{ fmt_tr(d.ki_checked, tz) }}){% else %} (Known issues kaynağı henüz başarıyla kontrol edilemedi){% endif %}.{% endif %}
+    {% if d.event.evidence_level == 'field' %} Teyit bulunamaması Microsoft'un sorunu reddettiği anlamına gelmez.{% endif %}{% endif %}</p>
+  <p><strong>Risk:</strong> {{ RISK_TR.get(d.event.risk_level, '—') }} <span class="muted">(sorunun nesnel etkisi; teyit düzeyinden ayrı değerlendirilir)</span>
+  {% if d.event.kind == 'issue' and d.event.evidence_level == 'field' %}<br><strong>Bağımsız saha kaynağı:</strong> {{ d.event.field_sources }} <span class="muted">(birbirini kopyalayan yayınlar tek kaynak sayılır)</span>{% endif %}</p>
+  <p class="small">İlk görülme: {{ fmt_tr(d.event.first_seen_at, tz) }} · Kaynak yayın: {{ fmt_tr(d.event.published_at, tz) }} · Anlamlı güncelleme: {{ fmt_tr(d.event.meaningful_update_at, tz) }} · Son kontrol: {{ fmt_tr(d.event.last_checked_at, tz) }}</p>
+</section>
+<section class="panel">
+  <h2>Değişiklik geçmişi</h2>
+  <ol class="timeline">
+  {% for h in d.history %}<li><strong>Sürüm {{ h.version }}</strong> — {{ fmt_tr(h.created_at, tz) }}<br>{{ h.change_note }}</li>{% endfor %}
+  </ol>
+  <p class="small">Yalnızca maddi değişiklikler (Microsoft teyidi, kapsam, risk, geçici çözüm, düzeltme yayımlanması, yeniden açılma, önceki bilginin düzeltilmesi) yeni sürüm oluşturur; yazım, tarih ve sayfa düzeni değişiklikleri sayılmaz.</p>
+</section>
+<section class="panel">
+  <h2>Kanıtlar ({{ d.evidence|length }})</h2>
+  {% for e in d.evidence %}
+  <div class="evidence trust-{{ e.trust }}">
+    <p><span class="badge">{{ {'official':'Resmî','press':'Basın','community':'Topluluk','unknown':'Bilinmeyen','user':'Kullanıcı kaynağı'}.get(e.trust, e.trust) }}</span>
+      <a href="{{ e.url }}" target="_blank" rel="noopener noreferrer">{{ e.title }}</a> <span class="muted">— {{ e.source }}</span>{% if e.snippet_only %} <span class="badge">yalnızca arama özeti</span>{% endif %}</p>
+    <p class="small">İlk görülme {{ fmt_tr(e.first_seen, tz) }} · son görülme {{ fmt_tr(e.last_seen, tz) }}{% if e.published %} · yayın {{ fmt_tr(e.published, tz) }}{% endif %} · {{ e.snaps }} anlık görüntü{% if e.match %} · eşleşme: {{ e.match }}{% endif %}</p>
+    <details><summary>Saklanan metin</summary><pre class="excerpt">{{ e.excerpt }}</pre></details>
+  </div>
+  {% endfor %}
+</section>
+<section class="panel">
+  <h2>Bildirim ve okuma durumu</h2>
+  <p class="small">Gönderildi, uygulamada görüntülendi, okundu ve susturuldu durumları ayrı tutulur. Gönderim okundu sayılmaz.</p>
+  <ul>
+    <li>Uygulamada görüntülendi: {{ fmt_tr(d.state.viewed_at, tz) if d.state.viewed_at else 'hayır' }}</li>
+    <li>Okundu: {{ ('evet (sürüm ' ~ d.state.read_version ~ ', ' ~ fmt_tr(d.state.read_at, tz) ~ ')') if d.state.read_at else 'hayır' }}</li>
+    <li>Takip: {{ 'evet' if d.state.followed else 'hayır' }} · Susturuldu: {{ fmt_tr(d.state.muted_at, tz) if d.state.muted_at else 'hayır' }}</li>
+  </ul>
+  {% if d.deliveries %}<table class="grid"><tr><th>Gönderim</th><th>Kanal</th><th>Sürüm</th><th>Biçim</th><th>Durum</th></tr>
+  {% for x in d.deliveries %}<tr><td>{{ fmt_tr(x.created_at, tz) }}</td><td>{{ x.channel }} ({{ x.kind }})</td><td>{{ x.version }}</td><td>{{ 'tam' if x.render_mode == 'full' else 'referans' }}</td><td>{{ x.status }}</td></tr>{% endfor %}</table>
+  {% else %}<p class="muted">Bu olay henüz hiçbir kanala gönderilmedi.</p>{% endif %}
+</section>
+{% endblock %}

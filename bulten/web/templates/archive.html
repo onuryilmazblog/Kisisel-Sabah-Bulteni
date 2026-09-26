@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "macros.html" import card %}
+{% block title %}Arşiv{% endblock %}
+{% block content %}
+{% set tz = settings.timezone %}
+<section class="pagehead"><h1>Arşiv</h1><p class="muted">{{ view.total }} kayıt. Gönderilmiş ama okunmamış içerikler burada okunmamış olarak kalır.</p></section>
+<form class="filters" method="get" action="/arsiv">
+  <input type="search" name="q" value="{{ f.q }}" placeholder="Başlık, özet veya KB">
+  <select name="module"><option value="">Tüm modüller</option>
+    {% for k, v in {'windows':'Windows','intune':'Intune','configmgr':'ConfigMgr','news':'Haberler','content':'İçerik'}.items() %}<option value="{{ k }}" {{ 'selected' if f.module == k }}>{{ v }}</option>{% endfor %}</select>
+  <select name="kind"><option value="">Tüm türler</option>
+    {% for k, v in {'issue':'Sorun','release':'Güncelleme (KB)','feature':'Özellik','notice':'Duyuru','version':'Sürüm','hotfix':'Hotfix','news':'Haber','content':'İçerik'}.items() %}<option value="{{ k }}" {{ 'selected' if f.kind == k }}>{{ v }}</option>{% endfor %}</select>
+  <select name="product"><option value="">Tüm ürünler</option>{% for p in products %}<option value="{{ p.id }}" {{ 'selected' if f.product == p.id }}>{{ p.label }}</option>{% endfor %}</select>
+  <input type="text" name="kb" value="{{ f.kb }}" placeholder="KB numarası" size="10">
+  <select name="evidence"><option value="">Tüm teyit düzeyleri</option>
+    {% for k in ['ms_known_issue','ms_official','field'] %}<option value="{{ k }}" {{ 'selected' if f.evidence == k }}>{{ EVIDENCE_LABELS[k] }}</option>{% endfor %}</select>
+  <select name="status"><option value="">Tüm durumlar</option><option value="open" {{ 'selected' if f.status == 'open' }}>Açık sorunlar</option><option value="resolved" {{ 'selected' if f.status == 'resolved' }}>Çözülenler</option></select>
+  <select name="read"><option value="">Okundu/okunmadı</option><option value="unread" {{ 'selected' if f.read == 'unread' }}>Okunmamış</option><option value="read" {{ 'selected' if f.read == 'read' }}>Okunmuş</option><option value="muted" {{ 'selected' if f.read == 'muted' }}>Susturulmuş</option></select>
+  <label class="chk"><input type="checkbox" name="demo" value="1" {{ 'checked' if f.demo == '1' }}> Demo</label>
+  <button class="btn">Filtrele</button> <a class="btn ghost" href="/arsiv">Temizle</a>
+</form>
+{% for c in view.cards %}{{ card(c, tz) }}{% else %}<p class="empty">Kayıt bulunamadı.</p>{% endfor %}
+{% if view.pages > 1 %}
+<nav class="pager">
+  {% set qs = request.query_params %}
+  {% if view.page > 1 %}<a class="btn" href="?{% for k, v in qs.items() if k != 'sayfa' %}{{ k }}={{ v|urlencode }}&{% endfor %}sayfa={{ view.page - 1 }}">← Önceki</a>{% endif %}
+  <span>Sayfa {{ view.page }} / {{ view.pages }}</span>
+  {% if view.page < view.pages %}<a class="btn" href="?{% for k, v in qs.items() if k != 'sayfa' %}{{ k }}={{ v|urlencode }}&{% endfor %}sayfa={{ view.page + 1 }}">Sonraki →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
