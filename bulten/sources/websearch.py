@@ -49,7 +49,7 @@ def build_queries(ctx: AdapterContext, max_queries: int = 6) -> list[str]:
 def _search_brave(ctx: AdapterContext, q: str) -> list[dict]:
     cfg = load_config()
     url = "https://api.search.brave.com/res/v1/web/search?" + urlencode({"q": q, "freshness": "pw", "count": 10})
-    res = ctx.fetcher.get(url, trusted=True, use_cache=False, accept="application/json",
+    res = ctx.fetcher.get(url, trusted=True, api=True, use_cache=False, accept="application/json",
                           extra_headers={"X-Subscription-Token": cfg.brave_api_key})
     data = json.loads(res.text)
     out = []
@@ -62,7 +62,7 @@ def _search_brave(ctx: AdapterContext, q: str) -> list[dict]:
 def _search_searxng(ctx: AdapterContext, q: str) -> list[dict]:
     cfg = load_config()
     url = f"{cfg.searxng_url}/search?" + urlencode({"q": q, "format": "json", "time_range": "week"})
-    res = ctx.fetcher.get(url, trusted=True, use_cache=False, accept="application/json")
+    res = ctx.fetcher.get(url, trusted=True, api=True, use_cache=False, accept="application/json")
     data = json.loads(res.text)
     return [{"title": i.get("title"), "url": i.get("url"), "snippet": i.get("content"),
              "date": i.get("publishedDate")} for i in data.get("results", [])[:10]]

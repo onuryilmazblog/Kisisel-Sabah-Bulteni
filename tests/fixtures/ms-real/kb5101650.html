@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<!-- Kaynak: https://support.microsoft.com/en-us/servicing/os/windows-11/2026/07/july-14-2026-kb5101650-os-builds-26200-8875-and-26100-8875 | alınma: 2026-09-26 | küçültüldü (yalnızca ana içerik) -->
+<html><head><title>July 14, 2026—KB5101650 (OS Builds 26200.8870 and 26100.8875) | Microsoft Support</title><meta content="08/05/2026" name="ms.date"/><meta content="2026-09-17 08:43 AM" name="updated_at"/></head><body><main class="col col-md-9 mt-4" id="supMainContent" role="main" tabindex="-1">
+<h1 id="july-14-2026kb5101650-os-builds-262008875-and-261008875">July 14, 2026—KB5101650 (OS Builds 26200.8875 and 26100.8875)</h1>
+<section>
+<div id="supAppliesToTableContainer">
+<details id="supAppliesToList"><summary>Applies To</summary><div><span>Windows 11 version 25H2, all editions</span> <span>Windows 11 version 24H2, all editions</span> </div></details>
+</div>
+</section>
+<div>
+<table>
+<thead>
+<tr>
+<th>
+ Want a quick overview?: Watch the <a href="https://aka.ms/Windows11/ReleaseNotes/Video/2607">Windows 11 release note video</a> for this update.</th>
+</tr>
+</thead>
+</table>
+<h2 id="announcements-and-messages">Announcements and messages</h2>
+<p>This section provides key notifications related to this release, including announcements, change logs, and end-of-support notices.  </p>
+<p><strong>Update temporarily unavailable for some devices with Intel IPF drivers</strong></p>
+<div>
+<p>Important</p>
+<p>This update was temporarily unavailable for a limited number of Dell devices that use an Intel Innovation Platform Framework (Intel IPF) driver due to an incompatibility between the update and an Intel component.</p>
+<p>Microsoft resolved this issue for affected devices with an out-of-band (OOB) update, <a href="/en-us/help/5121767">KB5121767</a>.</p>
+</div>
+<details>
+<summary>Windows Secure Boot certificate expiration</summary>
+<p><strong>Windows Secure Boot certificate expiration</strong></p>
+<div>
+<p>Important</p>
+<p>Secure Boot certificates used by most Windows devices were set to expire starting in June 2026. Microsoft has been updating these certificates on PCs and non-managed business devices for the past months. Devices that haven’t received the newer certificates will continue to start, and standard Windows updates will continue to install. We will continue to install the newer certificates via Windows updates in the coming months.</p>
+</div>
+</details>
+<details>
+<summary>End of updates</summary>
+<p>Windows 11, version 24H2 <a href="https://learn.microsoft.com/lifecycle/products/windows-11-home-and-pro">Home and Pro editions</a> will reach end of updates on October 13, 2026. Devices running these editions will no longer receive fixes for known issues, time zone updates, technical support, or monthly security and preview updates containing protections from the latest security threats. <a href="https://learn.microsoft.com/lifecycle/products/windows-11-enterprise-and-education">Enterprise and Education editions</a> remain supported until October 12, 2027.</p>
+<p>To stay protected and up to date, we recommend you upgrade to the latest version of <a href="https://learn.microsoft.com/windows/release-health/windows11-release-information">Windows 11</a>.</p>
+</details>
+<details>
+<summary>Change log</summary>
+<table>
+<thead>
+<tr>
+<th><strong>Change date</strong></th>
+<th><strong>Change description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>July 15, 2026</td>
+<td>Amended the announcement, "Update temporarily unavailable for some devices with Intel IPF drivers"</td>
+</tr>
+<tr>
+<td>August 5, 2026</td>
+<td>Update added, <strong>[Picture password]</strong> To help enhance security, picture password is no longer available for new enrollment. Users who have already configured a picture password can continue to use it to sign in to Windows. If a picture password is removed, disabled, or not previously configured, it cannot be set up again. We recommend using <a href="https://www.microsoft.com/windows/tips/windows-hello">Windows Hello</a> PIN, facial recognition, or fingerprint recognition where available.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<h2 id="improvements">Improvements</h2>
+<p>This update includes new features and quality improvements that were part of the following update:</p>
+<ul>
+<li><a href="/en-us/topic/1a9bcba6-5f53-4075-8156-fe11ac631737">June 9, 2026—KB5094126 (OS Builds 26200.8655 and 26100.8655)</a></li>
+<li><a href="/en-us/topic/0e2a20f2-cf9e-46f8-9f08-e6996220882d">June 23, 2026—KB5095093 (OS Builds 26200.8736 and 26100.8736) Preview</a></li>
+</ul>
+<p>This update addresses security vulnerabilities documented in the following guide:</p>
+<ul>
+<li><a href="https://msrc.microsoft.com/update-guide/releaseNote/2026-Jul">July 2026 Security Updates</a></li>
+</ul>
+<p>The following summary outlines key quality improvements addressed by this update. The bold text within the brackets indicates the item or area of the change.</p>
+<ul>
+<li><strong>[Secure Boot]</strong> This update includes additional high confidence device targeting data, increasing coverage of devices eligible to automatically receive <a href="/en-us/topic/windows-devices-for-home-users-businesses-and-schools-with-microsoft-managed-updates-29bfd847-5855-49f1-bb94-e18497fe2315">new Secure Boot certificates</a>. Certificate deployment via Windows updates continues</li>
+<li><strong>[Apps (Known issue)]</strong> Fixed: This update addresses an issue that affects certain third-party apps that use <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nf-oaidl-idispatch-invoke">OLE Automation</a> to interact with Microsoft Office. After installing the June 2026 security update <a href="/en-us/topic/june-9-2026-kb5094126-os-builds-26200-8655-and-26100-8655-1a9bcba6-5f53-4075-8156-fe11ac631737">(KB5094126)</a>, these apps might fail to launch Office or open documents.</li>
+<li><strong>[Input]</strong> This update changes hotkey unregister and cleanup behavior. In rare cases, some built-in Windows experiences that rely on previous hotkey lifecycle behavior might temporarily stop responding to certain keyboard shortcuts. This issue can typically be resolved by restarting the app affected. If the issue is not resolved, report it through the <a href="/en-us/Windows/Apps/send-feedback-to-microsoft-with-the-feedback-hub-app">Feedback Hub</a>.</li>
+<li><strong>[Networking]</strong> This update introduces a security hardening change that enforces TDI transport registration requirements. As a result, applications that use sockets over unregistered third-party TDI transports might stop working after installing this update. Registered TDI transports are not affected. For more information, see <a href="../../../windows/docs/2026/07/third-party-tdi-transports-might-stop-working-after-installing-windows-security-updates-released-on-or-after-july-14-2026">Third-party TDI transports might stop working after installing Windows security updates released on or after July 14, 2026</a>.</li>
+<li><strong>[Recycle Bin (known issue)]</strong> Fixed: This update addresses additional scenarios where the confirmation dialog might display an internal Recycle Bin file name instead of the original file name when permanently deleting a file. This issue might occur after installing the June 2026 security update <a href="/en-us/topic/june-9-2026-kb5094126-os-builds-26200-8655-and-26100-8655-1a9bcba6-5f53-4075-8156-fe11ac631737">(KB5094126)</a></li>
+<li><strong>[Security]</strong> This update upgrades the curl tool in Windows to version 8.21.0 and includes security improvements that help protect your device.</li>
+<li><strong>[Remote Desktop (RDP) Security]</strong> Support for SHA-2 certificate thumbprints has been added for trusted RDP publishers, with SHA-1 support retained only for backward compatibility and planned for future removal. <a href="https://learn.microsoft.com/windows-server/remote/remote-desktop-services/remotepc/manage-rdp-file-security-settings-with-group-policy">New guidance is available for managing RDP file security through Group Policy</a> to help organizations reduce phishing risks by controlling which .rdp files users can open. We recommend IT administrators migrate to SHA-256 thumbprints or a stronger algorithm as soon as possible to avoid disruption.</li>
+<li><strong>[Picture password]</strong> To help enhance security, picture password is no longer available for new enrollment. Users who have already configured a picture password can continue to use it to sign in to Windows. If a picture password is removed, disabled, or not previously configured, it cannot be set up again. We recommend using <a href="https://www.microsoft.com/windows/tips/windows-hello">Windows Hello</a> PIN, facial recognition, or fingerprint recognition where available.</li>
+</ul>
+<p>If you've already installed previous updates, your device will download and install only the new updates included in this package.</p>
+<h2 id="components-updates">Components updates</h2>
+<details>
+<summary>AI components</summary>
+<p>This release updates the following AI components to version 1.2605.856.0: Image Search, Content Extraction, Semantic Analysis, and Settings Model.</p>
+<p>To learn more, see <a href="https://learn.microsoft.com/windows/release-health/ai-components-release-information">Release information for AI components</a>.​​​​​​​</p>
+</details>
+<details>
+<summary>Servicing stack update</summary>
+​​​​​​​​​​​​​​Includes KB5120102 (Build 26100.8872), which improves the reliability of the Windows update installation process. To learn more about SSUs, see [Simplifying on-premises deployment of servicing stack updates](https://learn.microsoft.com/windows/deployment/update/servicing-stack-updates#simplifying-on-premises-deployment-of-servicing-stack-updates).
+</details>
+<h2 id="known-issues-in-this-update">Known issues in this update</h2>
+<p>Microsoft is not currently aware of any issues with this update.</p>
+<h2 id="how-to-get-this-update">How to get this update</h2>
+<p><strong>Before you install this update</strong></p>
+<p>Microsoft combines the latest servicing stack update (SSU) for your operating system with the latest cumulative update (LCU). For general information about SSUs, see <a href="https://docs.microsoft.com/windows/deployment/update/servicing-stack-updates">Servicing stack updates</a>.</p>
+<h3 id="deployment">Deployment</h3>
+<p>If you deploy dynamic updates such as this update to an existing Windows image, ensure the <strong>boot.stl</strong> file is included as part of the installation media. Failure to include the file might prevent devices from successfully starting from the installation media and can result in error code <code>0xc0430001</code>.</p>
+<div>
+<p>Note</p>
+<p>The <strong>boot.stl</strong> file is used during Secure Boot validation and must match the Windows version and architecture of the image you are updating.</p>
+</div>
+<p>To ensure the <strong>boot.stl</strong> file is included as part of the installation media, do one of the following:</p>
+<ul>
+<li>Use the <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update#update-winpe">Update WinPE</a> script to update an existing Windows image. <strong>(Recommended)</strong></li>
+<li>Manually copy the <strong>boot.stl</strong> file from the device <strong>Windows\Boot\EFI</strong> folder to the corresponding folder on your installation media before deploying the update.</li>
+</ul>
+<p>For information about how to apply Dynamic Update packages to existing Windows images, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<h3 id="install-this-update">Install this update</h3>
+<p>To install this update, use one of the following Windows and Microsoft release channels.</p>
+<hr/>
+<div id="tabgroup_1">
+<ul>
+<li>
+<a href="#tabpanel_1_windows-update">Windows Update</a>
+</li>
+<li>
+<a href="#tabpanel_1_business">Business</a>
+</li>
+<li>
+<a href="#tabpanel_1_catalog">Catalog</a>
+</li>
+<li>
+<a href="#tabpanel_1_server-update-services">Server Update Services</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows-update">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update and Microsoft Update.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_business">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update for Business in accordance with configured policies.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_catalog">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>To install this release from the <a href="https://catalog.update.microsoft.com/Search.aspx?q=KB5101650">Microsoft Update Catalog</a>, select the option that matches your device architecture (arm64 or x64), and then follow the instructions.</td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>Arm64 instructions</summary>
+<p><strong>Before you install this update</strong>, the standalone package(s) for this update is available from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5101650">Microsoft Update Catalog</a> website. This KB contains one or more MSU files that require installation in a specific order.</p>
+<p>You can install this update using Method 1 (install all MSU files together) or Method 2 (install each MSU file individually, in order).</p>
+<p><strong>Method 1: Install all MSU files together</strong></p>
+<p>Download all MSU files for KB5101650 from Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target update. DISM will use the folder specified in <strong>PackagePath</strong> to discover and install one or more prerequisite MSU files as needed.</p>
+<p><strong>Updating Windows PC</strong></p>
+<p>To apply this update to a running Windows PC, run the following command from an elevated Command Prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5101650-arm64_d6e94d9f6e19029b633eef18abf32e994af0b77e.msu</code></th>
+</tr>
+</thead>
+</table>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>Add-WindowsPackage -Online -PackagePath "c:\packages\windows11.0-kb5101650-arm64_d6e94d9f6e19029b633eef18abf32e994af0b77e.msu "</code></th>
+</tr>
+</thead>
+</table>
+<p>Or use <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19#bkmk_wusa_and_checkpoint">Windows Update Standalone Installer</a> to install the target update.</p>
+<p><strong>Updating Windows Installation media</strong></p>
+<p>To apply this update to Windows Installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<div>
+<p>Note</p>
+<p> When downloading other Dynamic Update packages, ensure they match the same month as this KB. If the SafeOS Dynamic Update or Setup Dynamic Update is not available for the same month as this KB, use the most recently published version of each.</p>
+</div>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>DISM /Image:mountdir /Add-Package /PackagePath:Windows11.0-kb5101650-arm64_d6e94d9f6e19029b633eef18abf32e994af0b77e.msu</code></th>
+</tr>
+</thead>
+</table>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>Add-WindowsPackage -Path "c:\offline" -PackagePath "Windows11.0-kb5101650-arm64_d6e94d9f6e19029b633eef18abf32e994af0b77e.msu" -PreventPending</code></th>
+</tr>
+</thead>
+</table>
+<p><strong>Method 2: Install each MSU file individually, in order</strong></p>
+<p>Download and install each MSU file individually either using DISM or <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19">Windows Update Standalone Installer</a> in the following order:</p>
+<ol>
+<li>windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu</li>
+<li>windows11.0-kb5101650-arm64_d6e94d9f6e19029b633eef18abf32e994af0b77e.msu </li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Note: This latest cumulative update includes updates for AI components. Even though the AI component updates are included in the update, the AI components are only applicable to Windows Copilot+ PCs and will not install on Windows PC or Windows Server.</th>
+</tr>
+</thead>
+</table>
+</details>
+<details>
+<summary>x64 instructions</summary>
+<p><strong>Before you install this update</strong>, the standalone package(s) for this update is available from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5101650">Microsoft Update Catalog</a> website. This KB contains one or more MSU files that require installation in a specific order.</p>
+<p>You can install this update using Method 1 (install all MSU files together) or Method 2 (install each MSU file individually, in order).</p>
+<p><strong>Method 1: Install all MSU files together</strong></p>
+<p>Download all MSU files for KB5101650 from Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target update. DISM will use the folder specified in <strong>PackagePath</strong> to discover and install one or more prerequisite MSU files as needed.</p>
+<p><strong>Updating Windows PC</strong></p>
+<p>To apply this update to a running Windows PC, run the following command from an elevated Command Prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-5101650-x64_5d4163c2e483adc9456b7ea9a8ea83d8fceaf52c.msu</code></th>
+</tr>
+</thead>
+</table>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>Add-WindowsPackage -Online -PackagePath "c:\packages\windows11.0-kb5101650-x64_5d4163c2e483adc9456b7ea9a8ea83d8fceaf52c.msu "</code></th>
+</tr>
+</thead>
+</table>
+<p>Or use <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19#bkmk_wusa_and_checkpoint">Windows Update Standalone Installer</a> to install the target update.</p>
+<p><strong>Updating Windows Installation media</strong></p>
+<p>To apply this update to Windows Installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation Media with Dynamic Update</a>.</p>
+<div>
+<p>Note</p>
+<p>When downloading other Dynamic Update packages, ensure they match the same month as this KB. If the SafeOS Dynamic Update or Setup Dynamic Update is not available for the same month as this KB, use the most recently published version of each.</p>
+</div>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>DISM /Image:mountdir /Add-Package /PackagePath:windows11.0-kb5101650-x64_5d4163c2e483adc9456b7ea9a8ea83d8fceaf52c.msu</code></th>
+</tr>
+</thead>
+</table>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<table>
+<thead>
+<tr>
+<th><code>Add-WindowsPackage -Path "c:\offline" -PackagePath "windows11.0-kb5101650-x64_5d4163c2e483adc9456b7ea9a8ea83d8fceaf52c.msu.msu" -PreventPending</code></th>
+</tr>
+</thead>
+</table>
+<p><strong>Method 2: Install each MSU file individually, in order</strong></p>
+<p>Download and install each MSU file individually either using DISM or <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19">Windows Update Standalone Installer</a> in the following order:</p>
+<ol>
+<li>windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu </li>
+<li>windows11.0-kbkb5101650-x64_5d4163c2e483adc9456b7ea9a8ea83d8fceaf52c</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Note: This latest cumulative update includes updates for AI components. Even though the AI component updates are included in the update, the AI components are only applicable to Windows Copilot+ PCs and will not install on Windows PC or Windows Server.</th>
+</tr>
+</thead>
+</table>
+</details>
+</section>
+<section id="tabpanel_1_server-update-services">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+<br/></td>
+<td>This update automatically syncs with Windows Server Update Services (WSUS) if you configure <strong>Products and Classifications</strong> as follows:<br/><strong>Product</strong>: Windows 11<br/><strong>Classification</strong>: Security Updates</td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+<h2 id="file-information">File information</h2>
+<p>For a list of the files provided in this update, <a href="https://go.microsoft.com/fwlink/?LinkId=2371134">download the file information for cumulative update 5101650</a>.</p>
+<p>For a list of the files provided in the servicing stack update, <a href="https://go.microsoft.com/fwlink/?LinkId=2371715">download the file information for the SSU (KB5120102) - version 26100.8872</a>.</p>
+<h2 id="related-topics">Related topics</h2>
+<p><a href="https://techcommunity.microsoft.com/blog/windows-itpro-blog/windows-monthly-updates-explained/3773544">Windows monthly updates explained</a></p>
+<p><a href="https://learn.microsoft.com/troubleshoot/windows-client/installing-updates-features-roles/standard-terminology-software-updates">Description of the standard terminology used for Microsoft software updates</a></p>
+<p><a href="https://learn.microsoft.com/intune/configmgr/apps/deploy-use/manage-apps-from-the-windows-store-for-business">Microsoft Store for Business and Education with Configuration Manager</a></p>
+<p><a href="/en-us/account-billing/get-updates-for-apps-and-games-in-microsoft-store-a1fe19c0-532d-ec47-7035-d1c5a1dd464f">Get updates for apps and games in Microsoft Store</a></p>
+</div>
+</main></body></html>

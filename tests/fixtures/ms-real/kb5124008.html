@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<!-- Kaynak: https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5124008-windows-11-24h2-25h2-security-update | alınma: 2026-09-26 | küçültüldü (yalnızca ana içerik) -->
+<html><head><title>September 8, 2026—KB5124008 (OS Builds 26200.9445 and 26100.9445) | Microsoft Support</title><meta content="09/08/2026" name="ms.date"/><meta content="2026-09-23 02:43 AM" name="updated_at"/></head><body><main class="col col-md-9 mt-4" id="supMainContent" role="main" tabindex="-1">
+<h1 id="september-8-2026kb5124008-os-builds-262009445-and-261009445">September 8, 2026—KB5124008 (OS Builds 26200.9445 and 26100.9445)</h1>
+<section>
+<div id="supAppliesToTableContainer">
+<details id="supAppliesToList"><summary>Applies To</summary><div><span>Windows 11 version 25H2, all editions</span> <span>Windows 11 version 24H2, all editions</span> </div></details>
+</div>
+</section>
+<div>
+<table>
+<thead>
+<tr>
+<th>
+ Want a quick overview?: Watch the <a href="https://aka.ms/Windows11/ReleaseNotes/Video/2609">Windows 11 release note video</a> for this update.</th>
+</tr>
+</thead>
+</table>
+<h2 id="announcements-and-messages">Announcements and messages</h2>
+<p>This section provides key notifications related to this release, including announcements, change logs, and end-of-support notices.</p>
+<details>
+<summary>Windows Secure Boot certificate expiration</summary>
+<p><strong>Windows Secure Boot certificate expiration</strong></p>
+<div>
+<p>Important</p>
+<p>Secure Boot certificates used by most Windows devices started to expire on June 2026. Microsoft has been updating these certificates on PCs and non-managed business devices for the past months. Devices that haven't received the newer certificates will continue to start, and standard Windows updates will continue to install. We will continue to install the newer certificates via Windows updates in the coming months.</p>
+</div>
+</details>
+<details>
+<summary>End of updates</summary>
+<p>Windows 11, version 24H2 <a href="https://learn.microsoft.com/lifecycle/products/windows-11-home-and-pro">Home and Pro editions</a> will reach end of updates on October 13, 2026. Devices running these editions will no longer receive fixes for known issues, time zone updates, technical support, or monthly security and preview updates containing protections from the latest security threats. <a href="https://learn.microsoft.com/lifecycle/products/windows-11-enterprise-and-education">Enterprise and Education editions</a> remain supported until October 12, 2027.</p>
+<p>To stay protected and up to date, we recommend you upgrade to the latest version of <a href="https://learn.microsoft.com/windows/release-health/windows11-release-information">Windows 11</a>.</p>
+</details>
+<h2 id="improvements">Improvements</h2>
+<p>This update includes improvements from the following previously released updates:</p>
+<ul>
+<li><a href="/en-us/servicing/os/windows-11/2026/08/kb5120998-windows-11-24h2-25h2-update">August 27, 2026-KB5120998 (OS Builds 26200.9278 and 26100.9278)</a></li>
+</ul>
+<p>The following summary outlines key quality improvements addressed by this update. The bold text within the brackets indicates the item or area of the change.</p>
+<ul>
+<li><p><strong>[Security updates]</strong> This update provides security improvements. For more information about the security vulnerabilities resolved by this update, see the <a href="https://msrc.microsoft.com/update-guide/releaseNote/2026-Sep">Security Update Guide</a>)</p>
+</li>
+<li><p><strong>[Secure Boot]</strong> This update includes additional high confidence device targeting data, increasing coverage of devices eligible to automatically receive <a href="/en-us/topic/windows-devices-for-home-users-businesses-and-schools-with-microsoft-managed-updates-29bfd847-5855-49f1-bb94-e18497fe2315">new Secure Boot certificates</a>. Certificate deployment via Windows updates continues across supported PCs and non-managed business devices in the coming months.</p>
+</li>
+<li><p><strong>[Mouse]</strong> Fixed: This update addresses an issue that prevented customized mouse cursor settings, including pointer style and color, from displaying correctly. Selected cursor options and colors now work as expected.</p>
+</li>
+<li><p><strong>[Personalization]</strong> Fixed: This update addresses an issue where desktop background and other personalization settings might not load correctly, causing the desktop background to appear black.</p>
+</li>
+<li><p><strong>[Teams and Outlook on Arm64 PCs]</strong> Fixed: This update addresses an issue that could cause Microsoft Teams and Microsoft Outlook to unexpectedly close on Arm64-based PCs.</p>
+</li>
+<li><p><strong>[Date and Time]</strong> This update adjusts Morocco Standard Time to reflect Morocco's transition to permanent UTC+00:00 effective September 20, 2026. This change ensures that the correct local time is displayed after the transition.</p>
+</li>
+<li><p><strong>[Remote Desktop Audio Redirection]</strong> This update addresses an issue affecting Remote Desktop audio redirection that could prevent audio from a remote session from playing on the local device in certain configurations.</p>
+</li>
+<li><p><strong>[OMA-DM Client Logging]</strong> This update improves diagnostic logging for the OMA-DM client, providing additional information to help troubleshoot device management server connection issues.</p>
+</li>
+</ul>
+<p>If you've already installed previous updates, your device will download and install only the new updates included in this package.</p>
+<h2 id="components-updates">Components updates</h2>
+<details>
+<summary>AI components</summary>
+<p>This release updates the following AI components to version 1.2608.951.0: Image Search, Content Extraction, Semantic Analysis, and Settings Model.
+To learn more, see <a href="https://learn.microsoft.com/windows/release-health/ai-components-release-information">Release information for AI components</a>.​</p>
+</details>
+<details>
+<summary>Servicing stack update</summary>
+<p>Includes KB5124007 (Build 26100.9441), which improves the reliability of the Windows update installation process. To learn more about SSUs, see <a href="https://learn.microsoft.com/windows/deployment/update/servicing-stack-updates#simplifying-on-premises-deployment-of-servicing-stack-updates">Simplifying on-premises deployment of servicing stack updates</a>.</p>
+</details>
+<h2 id="known-issues-in-this-update">Known issues in this update</h2>
+<details>
+<summary>Domain-joined devices might lose their secure trust relationship with the domain</summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 8, 2026, Windows security update (<a href="/en-us/help/5124008">KB5124008</a>), or later updates, some <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts">Credential Guard protected machine accounts</a> might lose their secure channel with an on-premises Active Directory (AD) domain. Users might then be unable to sign in interactively with valid domain credentials and might receive a message stating that the trust relationship between the device and the domain failed. Offline sign-in using previously cached credentials might continue to work. AD replication and AD services on the domain controllers are not affected.</p>
+<p>This issue occurs because <a href="/en-us/help/5124008">KB5124008</a> and later updates enable the <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts#machine-identity-isolation">Machine Identity Isolation</a> feature. While the update does not directly enable Machine Identity Isolation enforcement, it does cause Windows to begin honoring any existing or policy-provisioned settings that enabled Machine Identity Isolation enforcement. However, this feature is only supported for environments connected to domain controllers running at a Windows Server 2025 Domain Functional Level (DFL) and above. The feature should be disabled elsewhere. Any devices previously configured to use Machine Identity Isolation that are not connected to Windows Server 2025 domain controllers will experience this issue and will need to disable the feature.</p>
+<h3 id="workaround">Workaround</h3>
+<p><em>Important: This section contains information about modifying the registry. Before you modify the registry, back it up and make sure that you know how to restore it if a problem occurs. For more information, see <a href="/en-us/help/322756">How to back up and restore the registry in Windows</a>.</em></p>
+<p>To work around this issue, disable Machine Identity Isolation using the same management method that was used to enable it. Choose the applicable option below:</p>
+<ol>
+<li><p>If Machine Identity Isolation was enabled by Intune policy, <a href="https://learn.microsoft.com/windows/client-management/mdm/policy-csp-deviceguard#machineidentityisolation">disable Machine Identity Isolation with Intune</a>.</p>
+</li>
+<li><p>If Machine Identity Isolation was enabled by Group Policy, <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts#machine-identity-isolation">disable Machine Identity Isolation with Group Policy</a>.</p>
+</li>
+<li><p>If Machine Identity Isolation was enabled directly in the registry, use these steps to disable it:</p>
+<ul>
+<li><p>On the Windows 11, version 24H2 or 25H2 device, locate the following registry paths:</p>
+<pre><code>HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MachineIdentityIsolation
+</code></pre>
+<pre><code>HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard\MachineIdentityIsolation
+</code></pre>
+</li>
+<li><p>For either of these registry keys, if the value of <code>MachineIdentityIsolation</code> is set to <code>2</code>, change it to:</p>
+<pre><code>MachineIdentityIsolation = 0
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<p>After you disable Machine Identity Isolation, restart the device.</p>
+<p>Then reset the secure channel using the following command:</p>
+<pre><code>Test-ComputerSecureChannel -Repair -Credential (Get-Credential)
+</code></pre>
+<p><strong>Resolution</strong></p>
+<p>Microsoft plans to resolve this issue in a future Windows update by temporarily preventing Machine Identity Isolation enforcement while improvements are made to the feature.</p>
+</details>
+<details>
+<summary>USB audio devices might fail to start or produce no sound</summary>
+​​​​​​​​​
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 8, 2026, Windows security update (KB5124012), some <a href="https://learn.microsoft.com/windows-hardware/drivers/audio/usb-audio-class-system-driver--usbaudio-sys-">USB Audio Class 1.0 devices</a> might fail to start or produce audio. Affected devices might experience one or more of the following symptoms:</p>
+<ul>
+<li>​The device displays an error in Device Manager: "This device cannot start (Code 10).”
+​</li>
+<li>No audio output.
+​</li>
+<li>Volume controls are unresponsive or remain at zero.
+​</li>
+<li>Sound settings are unresponsive or unavailable.
+​</li>
+<li>Some devices might function in standard stereo configurations but fail when using multichannel audio features, including 8-channel or 3D audio modes. Some customers have reported that they're able to restore audio in these cases by switching to 2-channel mode.</li>
+</ul>
+<p>This issue is limited to USB Audio Class 1.0 devices.</p>
+<p><strong>Resolution</strong></p>
+<p>This issue is partially resolved in the out-of-band (OOB) update released on September 14, 2026, <a href="/en-us/help/5129195">(KB5129195)</a>. This OOB update resolves the symptoms experienced on devices using 8-channel or 3D audio modes. Microsoft is working to address the other symptoms and will provide more information when it is available.</p>
+<p>IT administrators who need an immediate workaround for the symptoms not addressed yet by the OOB update should contact <a href="/en-us/support-for-business">Microsoft Support for Business</a> for assistance.</p>
+</details>
+<details>
+<summary>Host folder shares might be unavailable in Hyper-V-based Linux VMs</summary>
+​​​​​​​​​
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 security update (KB5124008), applications that use <a href="https://learn.microsoft.com/virtualization/api/hcs/overview">HCS-managed</a> virtual machines might experience issues when sharing host folder with Linux VMs using Plan9. Affected virtual machines start normally, but folders shared from the Windows host using Plan9 do not appear or cannot be accessed in the guest environment.</p>
+<p>Applications or sandbox environments that depend on these shared folders might display an error indicating that no Plan9 drive shares were mounted. Claude Cowork and the Windows Subsystem for Linux (WSL) are two of the applications affected by this issue. Standard Hyper-V virtual machines that do not use the Plan9 feature are not affected by this issue.</p>
+<p><strong>Resolutions</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 14, 2026 such as <a href="/en-us/help/5129195">KB5129195</a>.</p>
+</details>
+<details>
+<summary>Remote Desktop Services might stop responding after September 2026 security update</summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 Windows security update, some organizations might experience issues with Remote Desktop Services (RDS).</p>
+<p>In some environments, RDS might become unstable, resulting in RDP connections failing after several minutes, sign-in issues, or servers hanging at "Please wait for the Remote Desktop Configuration". Related tools, including Microsoft Management Console (MMC), RDS Licensing Diagnoser, and File Explorer might also become unresponsive. Additionally, the Windows Update page might stop responding and continuously display a loading indicator.</p>
+<div>
+<p>Note</p>
+<p>This issue does not affect Windows 365 or Azure Virtual Desktop.</p>
+</div>
+<p><strong>Resolution</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 14, 2026 such as <a href="/en-us/help/5129195">KB5129195</a>. We recommend you install the latest Windows update for your device as it contains important improvements and issue resolutions, including this one.</p>
+</details>
+<details>
+<summary>File History might stop working after installing September 2026 Windows update </summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 Windows security update <a href="/en-us/help/5124008">KB5124008</a>, some customers using File History, might be unable to create or update backups. File History, available through <strong>Control Panel &gt; System and Security &gt; File History</strong>, is used to back up files to an external drive or network location. Affected devices might incorrectly display a "Reconnect your drive" message even when a compatible backup drive is connected and functioning properly. Additionally, the "Last Backup" timestamp might not update, and previously backed up files might show "No previous version available." In some cases, Event Viewer might record application crash events referencing <code>FileHistory.exe</code> and <code>KERNELBASE.dll</code>.</p>
+<p><strong>Resolution</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 22, 2026 such as <a href="kb5124010-windows-11-24h2-25h2-update">KB5124010</a>. We recommend you install the latest Windows update for your device as it contains important improvements and issue resolutions, including this one.</p>
+</details>
+<h2 id="how-to-get-this-update">How to get this update</h2>
+<h3 id="before-you-install-this-update">Before you install this update</h3>
+<p>Microsoft combines the latest servicing stack update (SSU) for your operating system with the latest cumulative update (LCU). For general information about SSUs, see <a href="https://docs.microsoft.com/windows/deployment/update/servicing-stack-updates">Servicing stack updates</a>.</p>
+<p><strong>Deployment</strong></p>
+<p>If you deploy dynamic updates such as this update to an existing Windows image, ensure the <strong>boot.stl</strong> file is included as part of the installation media. Failure to include the file might prevent devices from successfully starting from the installation media and can result in error code <code>0xc0430001</code>.</p>
+<div>
+<p>Note</p>
+<p>The <strong>boot.stl</strong> file is used during Secure Boot validation and must match the Windows version and architecture of the image you are updating.</p>
+</div>
+<p>To ensure the <strong>boot.stl</strong> file is included as part of the installation media, do one of the following:</p>
+<ul>
+<li>Use the <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update#update-winpe">Update WinPE</a> script to update an existing Windows image. <strong>(Recommended)</strong></li>
+<li>Manually copy the <strong>boot.stl</strong> file from the device <strong>Windows\Boot\EFI</strong> folder to the corresponding folder on your installation media before deploying the update.</li>
+</ul>
+<p>For information about how to apply Dynamic Update packages to existing Windows images, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<h3 id="install-this-update">Install this update</h3>
+<p>To install this update, use one of the following Windows and Microsoft release channels.</p>
+<hr/>
+<div id="tabgroup_1">
+<ul>
+<li>
+<a href="#tabpanel_1_windows-update">Windows Update</a>
+</li>
+<li>
+<a href="#tabpanel_1_business">Business</a>
+</li>
+<li>
+<a href="#tabpanel_1_catalog">Catalog</a>
+</li>
+<li>
+<a href="#tabpanel_1_server-update-services">Server Update Services</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows-update">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update and Microsoft Update.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_business">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update for Business in accordance with configured policies.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_catalog">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>To install this release from the <a href="https://catalog.update.microsoft.com/Search.aspx?q=KB5124008">Microsoft Update Catalog</a>, select the option that matches your device architecture (Arm64 or x64), and then follow the instructions.<br/><br/><strong>Note:</strong> This latest cumulative update includes updates for AI components. Even though the AI component updates are included in the update, the AI components are only applicable to Windows Copilot+ PCs and will not install on Windows PC or Windows Server.</td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>Arm64 instructions</summary>
+<p><strong>Before you install this update</strong>, the standalone package(s) for this update is available from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5124008">Microsoft Update Catalog</a> website. This update contains one or more .msu files that require installation in a specific order.</p>
+<p>You can install this update using Method 1 (install all .msu files together) or Method 2 (install each .msu file individually, in order).</p>
+<p><strong>Method 1: Install all .msu files together</strong></p>
+<p>Download all .msu files for KB5124008 from Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Ensure no other files are in the folder. This update consists of the following .msu update files:</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/80a41ce9-2d13-4bb2-89ad-efcba8618cf9/public/windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu">windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu</a></li>
+</ol>
+<p>Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target update. DISM will use the folder specified in <strong>PackagePath</strong> to discover and install one or more prerequisite .msu files as needed.</p>
+<p><strong>Updating Windows PC</strong></p>
+<p>To apply this update to a running Windows PC, run the following command from an elevated Command Prompt:</p>
+<p><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu</code></p>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<p><code>Add-WindowsPackage -Online -PackagePath "c:\packages\windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu</code></p>
+<p>Or use <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19#bkmk_wusa_and_checkpoint">Windows Update Standalone Installer</a> to install the target update.</p>
+<p><strong>Updating Windows Installation media</strong></p>
+<p>To apply this update to Windows Installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<div>
+<p>Note</p>
+<p> When downloading other Dynamic Update packages, ensure they match the same month as this update. If the SafeOS Dynamic Update or Setup Dynamic Update is not available for the same month as this update, use the most recently published version of each.</p>
+</div>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt:</p>
+<p><code>DISM /Image:mountdir /Add-Package /PackagePath:windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu</code></p>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<p><code>Add-WindowsPackage -Path "c:\offline" -PackagePath "windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu" -PreventPending</code></p>
+<p><strong>Method 2: Install each .msu file individually, in order</strong></p>
+<p>Download and install each .msu file individually either using DISM or <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19">Windows Update Standalone Installer</a> in the following order:</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/80a41ce9-2d13-4bb2-89ad-efcba8618cf9/public/windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu">windows11.0-kb5124008-arm64_fdafaffd9974ce7cb253ddc4222ab68dc34eec77.msu</a></li>
+</ol>
+</details>
+<details>
+<summary>x64 instructions</summary>
+<p><strong>Before you install this update</strong>, the standalone package(s) for this update is available from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5124008">Microsoft Update Catalog</a> website. This update contains one or more .msu files that require installation in a specific order. This update consists of the following .msu update files:</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/d8b7f92b-bd35-4b4c-96e5-46ce984b31e0/public/windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu">windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/ed315343-4767-4a66-9be5-2a23bef1546e/public/windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu">windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu</a></li>
+</ol>
+<p>You can install this update using Method 1 (install all .msu files together) or Method 2 (install each .msu file individually, in order).</p>
+<p><strong>Method 1: Install all .msu files together</strong></p>
+<p>Download all .msu files for KB5124008 from Microsoft Update Catalog and place them in the same folder (for example, C:/Packages).  Ensure no other files are in the folder.</p>
+<p>Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target update. DISM will use the folder specified in <strong>PackagePath</strong> to discover and install one or more prerequisite .msu files as needed.</p>
+<p><strong>Updating Windows PC</strong></p>
+<p>To apply this update to a running Windows PC, run the following command from an elevated Command Prompt:</p>
+<p><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu</code></p>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<p><code>Add-WindowsPackage -Online -PackagePath "c:\packages\windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu</code></p>
+<p>Or use <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19#bkmk_wusa_and_checkpoint">Windows Update Standalone Installer</a> to install the target update.</p>
+<p><strong>Updating Windows Installation media</strong></p>
+<p>To apply this update to Windows Installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation Media with Dynamic Update</a>.</p>
+<div>
+<p>Note</p>
+<p>When downloading other Dynamic Update packages, ensure they match the same month as this update. If the SafeOS Dynamic Update or Setup Dynamic Update is not available for the same month as this update, use the most recently published version of each.</p>
+</div>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt:</p>
+<p><code>DISM /Image:mountdir /Add-Package /PackagePath:windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu</code></p>
+<p>Or, run the following command from an elevated Windows PowerShell prompt:</p>
+<p><code>Add-WindowsPackage -Path "c:\offline" -PackagePath "windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu" -PreventPending</code></p>
+<p><strong>Method 2: Install each .msu file individually, in order</strong></p>
+<p>Download and install each .msu file individually either using DISM or <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19">Windows Update Standalone Installer</a> in the following order:</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/d8b7f92b-bd35-4b4c-96e5-46ce984b31e0/public/windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu">windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/ed315343-4767-4a66-9be5-2a23bef1546e/public/windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu">windows11.0-kb5124008-x64_81e42f50fdb7af8d15eefc23aa51cf3e23215bdc.msu</a></li>
+</ol>
+</details>
+</section>
+<section id="tabpanel_1_server-update-services">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+<br/></td>
+<td>This update automatically syncs with Windows Server Update Services (WSUS) if you configure <strong>Products</strong> and <strong>Classifications</strong> as follows:<br/><br/><ul><li><strong>Product</strong>: Windows 11</li><li><strong>Classification</strong>: Security Updates</li></ul></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+<h2 id="file-information">File information</h2>
+<p>For a list of the files provided in this update, download the file information for <a href="https://go.microsoft.com/fwlink/?LinkId=2378921">cumulative update KB5124008</a>.</p>
+<p>For a list of the files provided in the servicing stack update, download the file information for the <a href="https://go.microsoft.com/fwlink/?LinkId=2379401">SSU (KB5124007) - version 26100.9441</a>.</p>
+<h2 id="related-topics">Related topics</h2>
+<p><a href="https://techcommunity.microsoft.com/blog/windows-itpro-blog/windows-monthly-updates-explained/3773544">Windows monthly updates explained</a></p>
+<p><a href="https://learn.microsoft.com/troubleshoot/windows-client/installing-updates-features-roles/standard-terminology-software-updates">Description of the standard terminology used for Microsoft software updates</a></p>
+<p><a href="https://learn.microsoft.com/intune/configmgr/apps/deploy-use/manage-apps-from-the-windows-store-for-business">Microsoft Store for Business and Education with Configuration Manager</a></p>
+<p><a href="https://support">Get updates for apps and games in Microsoft Store</a></p>
+<details>
+<summary><strong>Change log</strong></summary>
+<table>
+<thead>
+<tr>
+<th><strong>Change date</strong></th>
+<th><strong>Change description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>September 22, 2026</strong></td>
+<td>Added the resolution for the known issue, "File History might stop working after installing September 2026 Windows update".</td>
+</tr>
+<tr>
+<td><strong>September 19, 2026</strong></td>
+<td>Added a known issue, "File History might stop working after installing September 2026 Windows update".</td>
+</tr>
+<tr>
+<td><strong>September 14, 2026</strong></td>
+<td>Added the resolution for the known issue "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+<tr>
+<td><strong>September 12, 2026</strong></td>
+<td>Added a known issue, "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+<tr>
+<td><strong>September 12, 2026</strong></td>
+<td>Added a known issue, "USB audio devices might fail to start or produce no sound".</td>
+</tr>
+<tr>
+<td><strong>September 11, 2026</strong></td>
+<td>Added a known issue, "Host folder shares might be unavailable in Hyper-V-based Linux VMs".</td>
+</tr>
+</tbody>
+</table>
+</details>
+</div>
+</main></body></html>

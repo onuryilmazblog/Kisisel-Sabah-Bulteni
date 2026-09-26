@@ -18,17 +18,21 @@ katmanı (`tests/helpers.py: FakeFetcher`) ve sahte Telegram/SMTP/LLM sınıflar
 
 | Dosya | Kapsam |
 |---|---|
-| `tests/test_parsers.py` | Release health (iki farklı HTML yapısı + tanınmayan sayfa), güncelleme türleri (güvenlik/preview/OOB/hotpatch), KB "Known issues", Intune ve ConfigMgr (gerçek Microsoft belgeleri: MicrosoftDocs/memdocs), RSS süzme, Türkçe sayı biçimi, ICS |
-| `tests/test_security.py` | SSRF (özel/yerel IP, port, şema, kullanıcı bilgisi, DNS çözümlemesi), topluluk sayfalarının resmî sayılmaması, sendikasyon kopyalarının bağımsız sayılmaması, kullanıcı kaynağının "resmî" etiket alamaması, Telegram düğmelerinin yalnızca yetkili sohbetten kabulü |
+| `tests/test_real_pages.py` | Gerçek Microsoft sayfaları (2026-09-26): Release health durum/çözülen sorunlar ve message center; güncelleme geçmişinde ürün menü kategorisi seçimi, göreli bağlantılar, güvenlik/preview/OOB ayrımı; KB makalelerinde sorun başına ayrıştırma, kısmi düzeltme, kaynak KB; gerçek sayfalarla uçtan uca tekilleştirme (aynı sorun farklı ürün KB'lerinde tek olay) |
+| `tests/test_parsers.py` | Release health (iki farklı HTML yapısı + tanınmayan sayfa), güncelleme türleri (güvenlik/preview/OOB/hotpatch), KB "Known issues" (elle hazırlanmış alternatif yapılar), Intune ve ConfigMgr (gerçek Microsoft belgeleri: MicrosoftDocs/memdocs), RSS süzme, Türkçe sayı biçimi, ICS, konum arama sıralaması (gerçek Open-Meteo yanıtı) |
+| `tests/test_security.py` | SSRF (özel/yerel IP, port, şema, kullanıcı bilgisi, DNS çözümlemesi), robots.txt'nin sayfalara uygulanıp belgelenmiş API'lere uygulanmaması, yerleşik kaynak tanımlarının yenilenmesi (kullanıcı tercihi korunur, robots.txt'nin engellediği kaynak kapanır), topluluk sayfalarının resmî sayılmaması, sendikasyon kopyalarının bağımsız sayılmaması, kullanıcı kaynağının "resmî" etiket alamaması, Telegram düğmelerinin yalnızca yetkili sohbetten kabulü |
 | `tests/test_llm.py` | Kanıtta olmayan KB içeren LLM çıktısının reddi, doğrulanamayan alıntının "AI çıkarımı"na düşürülmesi, günlük çağrı sınırı ve şablon yedeği, Türkçe–İngilizce haberin kanonik başlıkla tek olayda toplanması |
 | `tests/test_email.py` | SMTP sonuç sınıflandırması (gönderildi / yeniden denenebilir / kalıcı / belirsiz) ve deterministik Message-ID |
 | `tests/test_web.py` | Tüm sayfaların açılması, CSRF zorunluluğu, görüntülemenin "okundu" sayılmaması, e-posta bağlantısının onay gerektirmesi, ayar kaydı, özel ağ adreslerinin kaynak olarak reddi, parola modu, parolasız uzaktan erişim engeli |
 
 ## Canlı doğrulama
 
-Otomatik testler canlı servislere bağlanmaz. Kurulumdan sonra:
+Otomatik testler canlı servislere bağlanmaz; gerçek sayfalardan alınmış örnekler kullanır. Kurulumdan sonra:
 
 ```bash
-bulten kaynak-dogrula --hepsi   # tüm kaynakları sunucunuzun ağından dener, kayıt yazmaz
+bulten kaynak-dogrula --hepsi   # tüm kaynakları ve hava/piyasa sağlayıcılarını sunucunuzun ağından dener, kayıt yazmaz
 bulten telegram-test             # Telegram bot ve sohbet kimliğini doğrular
 ```
+
+2026-09-26'daki canlı doğrulama sonucu (63 kaynaktan 59'u; kalan dördü robots.txt nedeniyle kapalı) için
+bkz. KAYNAKLAR.md.

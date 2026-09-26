@@ -67,10 +67,12 @@ def cmd_bulletin(args) -> None:
 
 
 def cmd_validate(args) -> None:
-    from .pipeline.validate import validate_sources
+    from .pipeline.validate import validate_daily, validate_sources
 
     conn = _conn()
     results = validate_sources(conn, slugs=args.slug or None, include_disabled=args.all)
+    if not args.slug:
+        results += validate_daily(conn, include_disabled=args.all)
     ok = 0
     for r in results:
         mark = "OK " if r["ok"] and not r["error"] else "HATA"
@@ -81,7 +83,7 @@ def cmd_validate(args) -> None:
         for w in r["warnings"][:3]:
             print(f"        uyarı: {w}")
         for t in r["sample"]:
-            print(f"        örnek: {t[:100]}")
+            print(f"        örnek: {t[:140]}")
     print(f"\n{ok}/{len(results)} kaynak doğrulandı.")
     sys.exit(0 if ok == len(results) else 1)
 

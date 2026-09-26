@@ -44,6 +44,29 @@ def test_fetcher_blocks_user_url_to_private_network(tmp_path, monkeypatch):
     assert exc.value.kind == "blocked"
 
 
+def test_robots_applies_to_pages_but_not_documented_apis(tmp_path):
+    """api.open-meteo.com tarayıcılara "Disallow: /" döndürür; belgelenmiş API çağrısı engellenmemeli,
+    sayfa/besleme okuması ise robots.txt'ye uymalı (Reddit, Webrazzi /feed/ gibi)."""
+    import httpx
+
+    conn = make_db(tmp_path)
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nDisallow: /\n")
+        return httpx.Response(200, json={"ok": True})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    f = Fetcher(conn, client=client, min_host_interval=0)
+    res = f.get("https://api.example.com/v1/forecast?latitude=1", trusted=True, api=True, use_cache=False)
+    assert res.status == 200 and "/robots.txt" not in seen
+    with pytest.raises(FetchError) as exc:
+        f.get("https://api.example.com/feed/", trusted=True)
+    assert exc.value.kind == "robots" and seen.count("/v1/forecast") == 1 and "/feed/" not in seen
+
+
 def test_microsoft_community_pages_are_not_official():
     assert classify_url("https://learn.microsoft.com/en-us/answers/questions/123/kb-issue") == "community"
     assert classify_url("https://answers.microsoft.com/en-us/windows/forum/x") == "community"
@@ -130,3 +153,27 @@ def test_cards_only_link_http_urls_and_news_have_sources(tmp_path):
     card = build_card(conn, vid)
     assert card["primary_url"] == "https://a.example/faiz"
     assert all(ln["url"].startswith("http") for ln in card["links"])
+
+
+def test_builtin_refresh_updates_definitions_and_disables_blocked_sources(tmp_path):
+    from bulten.db import kv_set
+    from bulten.sources.registry import seed_sources
+
+    conn = make_db(tmp_path)
+    # Eski sürümden kalma durum: eski adres, robots.txt'nin engellediği kaynak açık, kullanıcı bir kaynağı kapatmış.
+    conn.execute("UPDATE sources SET url = 'https://support.microsoft.com/en-us/topic/old', config_json = '{}' "
+                 "WHERE slug = 'ms-uh-win11-25h2'")
+    conn.execute("UPDATE sources SET enabled = 1 WHERE slug IN ('reddit-sysadmin', 'news-webrazzi')")
+    conn.execute("UPDATE sources SET enabled = 0 WHERE slug = 'bleepingcomputer'")
+    kv_set(conn, "builtin_sources_rev", "1")
+    seed_sources(conn)
+    row = conn.execute("SELECT * FROM sources WHERE slug = 'ms-uh-win11-25h2'").fetchone()
+    assert row["url"].startswith("https://support.microsoft.com/en-us/servicing/os/windows-11/")
+    assert "Windows 11, version 25H2" in row["config_json"] and row["enabled"] == 1
+    en = {r["slug"]: r["enabled"] for r in conn.execute("SELECT slug, enabled FROM sources")}
+    assert en["reddit-sysadmin"] == 0 and en["news-webrazzi"] == 0
+    assert en["bleepingcomputer"] == 0, "kullanıcının kapattığı kaynak kapalı kalmalı"
+    # Sürüm kaydedildikten sonra tekrar yenileme yapılmaz (kullanıcı tercihine dokunulmaz).
+    conn.execute("UPDATE sources SET enabled = 1 WHERE slug = 'reddit-sysadmin'")
+    seed_sources(conn)
+    assert conn.execute("SELECT enabled FROM sources WHERE slug = 'reddit-sysadmin'").fetchone()[0] == 1

@@ -12,12 +12,14 @@ from __future__ import annotations
 
 import re
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 
-from ..textutil import extract_builds, extract_kbs, extract_products, norm_space, symptom_tags
+from ..textutil import (
+    extract_builds, extract_kbs, extract_products, norm_space, split_fix_kbs, strip_registry_warning, symptom_tags,
+)
 from ..timeutil import parse_loose_date, to_iso
 from .base import AdapterContext, AdapterResult, Observation, SourceRow, fetch_with_fallback, slugify
-from .htmlutil import main_content, soup_of, text_of
+from .htmlutil import BLOCK_TAGS, main_content, normalize_text, soup_of, text_of
 
 ANCHOR_RE = re.compile(r"(\d{3,9})msgdesc", re.I)
 
@@ -90,35 +92,72 @@ STOP_LABELS = ["Workaround", "Resolution", "Next steps", "Affected platforms", "
                "History", "Back to top", "Note", "Important"]
 
 
-def _detail_container(soup: BeautifulSoup, anchor: str) -> Tag | None:
+def _is_anchor(node: Tag) -> bool:
+    ident = node.get("id") or (node.get("name") if node.name == "a" else None) or ""
+    return bool(ident) and bool(ANCHOR_RE.search(ident))
+
+
+def _detail_text(soup: BeautifulSoup, anchor: str) -> str | None:
+    """Çapadan bir sonraki sorun çapasına (veya h2 başlığına) kadar olan metni belge sırasıyla toplar.
+
+    Gerçek Learn sayfalarında bir sorunun kuyruğu (ör. "Affected platforms") bir sonraki sorunun
+    çapasını da içeren iç içe bir div'de olabilir; kardeş öğe yürüyüşü bu kısmı kaçırır. Belge sırası
+    (next_elements) iç içe yapıdan bağımsızdır.
+    """
     el = soup.find(id=anchor) or soup.find("a", attrs={"name": anchor})
     if el is None:
         return None
-    for parent in el.parents:
-        if parent.name in ("tr", "section", "details", "article") and parent.name != "body":
-            # tablo satırı birden çok soruna yayılmıyorsa kullan
-            if len(parent.find_all(id=ANCHOR_RE)) <= 1:
-                return parent
-            break
-    # Kardeşleri bir sonraki çapaya veya başlığa kadar topla.
-    wrapper = soup.new_tag("div")
-    node = el
-    collected = [el] if el.get_text(strip=True) else []
-    while node is not None:
-        node = node.next_sibling
-        if node is None:
-            break
+    parts: list[str] = []
+    for node in el.next_elements:
         if isinstance(node, Tag):
-            if node.name in ("h1", "h2") or (node.get("id") and ANCHOR_RE.search(node.get("id", ""))):
+            if node is not el and _is_anchor(node):
                 break
-            if node.find(id=ANCHOR_RE) is not None:
+            if node.name in ("h1", "h2"):
                 break
-            if node.name == "h3" and collected:
+            if node.name == "br":
+                parts.append("\n")
+            elif node.name == "li":
+                parts.append("\n• ")
+            elif node.name in ("td", "th"):
+                parts.append(" · ")
+            elif node.name in BLOCK_TAGS:
+                parts.append("\n")
+        elif isinstance(node, NavigableString):
+            if isinstance(node, Comment) or (node.parent is not None and node.parent.name in (
+                    "script", "style", "noscript", "template")):
+                continue
+            parts.append(str(node))
+    return normalize_text("".join(parts))
+
+
+def _detail_meta(soup: BeautifulSoup, anchor: str) -> dict[str, str]:
+    """Ayrıntı bölümündeki küçük tablo (Status | Originating update | History), hücre bazında.
+
+    Serbest metinde "Originating update" etiketinden sonrası durum hücresindeki çözüm KB'sini de
+    içerebildiği için kaynak KB hücreden okunur.
+    """
+    el = soup.find(id=anchor) or soup.find("a", attrs={"name": anchor})
+    if el is None:
+        return {}
+    table = None
+    for node in el.next_elements:
+        if isinstance(node, Tag):
+            if node is not el and _is_anchor(node):
+                return {}
+            if node.name == "table":
+                table = node
                 break
-        collected.append(node)
-    for c in collected:
-        wrapper.append(c.__copy__() if isinstance(c, Tag) else str(c))
-    return wrapper
+    if table is None:
+        return {}
+    heads = [norm_space(c.get_text(" ", strip=True)).lower() for c in table.find_all("th")]
+    row = next((tr.find_all("td") for tr in table.find_all("tr") if tr.find_all("td")), [])
+    out: dict[str, str] = {}
+    for head, cell in zip(heads, row):
+        key = ("status" if "status" in head else "originating" if "originating" in head
+               else "history" if "history" in head else None)
+        if key:
+            out[key] = text_of(cell)
+    return out
 
 
 def _symptom_text(detail: str) -> str:
@@ -129,8 +168,11 @@ def _symptom_text(detail: str) -> str:
 
 def _affected(text: str) -> dict[str, str]:
     out = {}
-    m = re.search(r"Affected platforms?\s*:?(.+?)(?:Workaround\s*:|Resolution\s*:|Next steps\s*:|\Z)", text, re.I | re.S)
-    block = m.group(1) if m else text
+    # Etiket iki nokta ile gelmeli: gerçek sayfalarda gövdede "limited to the affected platforms listed
+    # below" gibi cümleler de geçiyor. Birden çok eşleşmede sonuncusu (sorunun kuyruğundaki blok) alınır.
+    blocks = re.findall(r"Affected platforms?\s*:(.+?)(?=Workaround\s*:|Resolution\s*:|Next steps\s*:|\Z)",
+                        text, re.I | re.S)
+    block = blocks[-1] if blocks else text
     for kind in ("Client", "Server"):
         mm = re.search(rf"{kind}\s*:\s*(.+)", block)
         if mm:
@@ -206,32 +248,37 @@ def parse_wrh_page(html: str, *, page_url: str, page_products: list[str], sectio
             anchors.append(ob.fields["anchor"])
 
     for anchor in dict.fromkeys(anchors):
-        container = _detail_container(soup, anchor)
-        if container is None:
-            continue
-        detail = text_of(container)
+        detail = _detail_text(soup, anchor)
         if not detail:
             continue
         iid = _issue_id(anchor, "")
         ob = obs.get(iid)
-        head = container.find(["b", "strong", "h3", "h4"])
-        dtitle = norm_space(head.get_text(" ", strip=True)) if head else norm_space(detail.split("\n")[0])
+        dtitle = norm_space(detail.split("\n")[0])
         if ob is None:
             ob = Observation(external_key=f"wrh:{iid}", kind="known_issue", title=dtitle or iid,
                              url=f"{page_url}#{anchor}", fields={"issue_id": iid, "anchor": anchor, "section": section})
             obs[iid] = ob
         ob.body = detail[:8000]
         f = ob.fields
+        meta = _detail_meta(soup, anchor)
         if not f.get("status_raw"):
-            m = re.search(r"\b(Resolved External|Resolved(?: KB\d+)?|Mitigated External|Mitigated|Confirmed|Investigating)\b", detail)
-            f["status_raw"] = m.group(1) if m else ""
+            if meta.get("status"):
+                f["status_raw"] = norm_space(meta["status"])
+            else:
+                m = re.search(r"\b(Resolved External|Resolved(?: KB\d+)?|Mitigated External|Mitigated|Confirmed|Investigating)\b", detail)
+                f["status_raw"] = m.group(1) if m else ""
             f["status"] = normalize_status(f["status_raw"])
         if not f.get("originating_kbs"):
-            m = re.search(r"Originating update\s*:?(.{0,160})", detail, re.S)
-            seg = m.group(1) if m else detail[:600]
+            if "originating" in meta:
+                seg = meta["originating"]
+            else:
+                m = re.search(r"Originating update\s*:(.{0,160})", detail, re.S)
+                seg = m.group(1) if m else ""
             f["originating_kbs"] = extract_kbs(seg)
             f["originating_builds"] = extract_builds(seg)
-        f["workaround"] = _section_after("Workaround", detail, STOP_LABELS)
+            if seg and not f.get("originating_raw"):
+                f["originating_raw"] = norm_space(seg)
+        f["workaround"] = strip_registry_warning(_section_after("Workaround", detail, STOP_LABELS))
         f["resolution"] = _section_after("Resolution", detail, STOP_LABELS)
         f["next_steps"] = _section_after("Next steps", detail, STOP_LABELS)
         f["affected_platforms"] = _affected(detail)
@@ -244,9 +291,11 @@ def parse_wrh_page(html: str, *, page_url: str, page_products: list[str], sectio
     for ob in obs.values():
         f = ob.fields
         text_all = " ".join([ob.title, ob.body, f.get("status_raw", ""), f.get("resolution", "")])
-        res_kbs = set(extract_kbs(f.get("status_raw", "")) + extract_kbs(f.get("resolution", "")))
-        res_kbs -= set(f.get("originating_kbs") or [])
+        full_kbs, partial_kbs = split_fix_kbs(f.get("resolution", ""))
+        origin = set(f.get("originating_kbs") or [])
+        res_kbs = (set(extract_kbs(f.get("status_raw", ""))) | set(full_kbs)) - origin
         f["resolving_kbs"] = sorted(res_kbs)
+        f["partial_fix_kbs"] = sorted(set(partial_kbs) - res_kbs - origin)
         f["kir"] = bool(re.search(r"known issue rollback|\bKIR\b", text_all, re.I))
         aff = " ; ".join((f.get("affected_platforms") or {}).values())
         products = set(page_products) | set(extract_products(aff))

@@ -116,6 +116,33 @@ def extract_kbs(text: str) -> list[str]:
     return sorted({m.group(1) for m in KB_RE.finditer(text or "")})
 
 
+REGISTRY_WARNING_RE = re.compile(
+    r"Important:\s*This section[^.]*modifying the registry\..*?(?:how to back up and restore the registry[^.\n]*\.?|$)",
+    re.I | re.S)
+
+
+def strip_registry_warning(text: str) -> str:
+    """Microsoft'un standart "kayıt defterini değiştirmeden önce yedekleyin" uyarısı geçici çözüm değildir."""
+    return REGISTRY_WARNING_RE.sub("", text or "").strip()
+
+
+PARTIAL_FIX_RE = re.compile(r"\bpartial(?:ly)?\b|\binitial (?:solution|fix)\b|\bresolved some\b", re.I)
+
+
+def split_fix_kbs(text: str) -> tuple[list[str], list[str]]:
+    """Çözüm metnindeki KB'leri (tam, kısmi) olarak ayırır.
+
+    "This issue is partially resolved in … (KB5129195)" veya "An initial solution that resolved some
+    devices … (KB5077797)" cümlelerindeki KB'ler tam düzeltme sayılmaz. Başka bir cümlede tam düzeltme
+    olarak da geçen KB tam listede kalır.
+    """
+    full: set[str] = set()
+    partial: set[str] = set()
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", text or ""):
+        (partial if PARTIAL_FIX_RE.search(sentence) else full).update(extract_kbs(sentence))
+    return sorted(full), sorted(partial - full)
+
+
 def extract_builds(text: str) -> list[str]:
     return sorted({f"{m.group(1)}.{m.group(2)}" for m in BUILD_RE.finditer(text or "")
                    if m.group(1) in BUILD_TO_PRODUCTS})
@@ -180,9 +207,12 @@ SYMPTOM_TAGS: dict[str, list[str]] = {
     "performance": ["performance", "slow", "high cpu", "memory leak", "freeze", "hang", "unresponsive",
                     "yavas", "donma", "takil"],
     "audio": ["audio", "sound", "speaker", "microphone", "ses "],
+    "backup": ["file history", "backup", "back up", "backing up", "yedekleme", "yedek al"],
     "display": ["display driver", "external display", "external monitor", "multiple monitors", "graphics driver",
                 "gpu", "screen flicker", "flickering"],
-    "storage": ["disk", "storage", "file system", "ntfs", "refs", "file explorer", "dosya gezgini"],
+    "storage": ["disk", "storage", "file system", "ntfs", "refs", "file share", "host folder"],
+    "shell": ["file explorer", "explorer.exe", "windows explorer", "start menu", "taskbar", "desktop background",
+              "dosya gezgini", "baslat menusu", "gorev cubugu"],
     "security": ["zero-day", "zero day", "exploited", "actively exploited", "security feature bypass",
                  "sifir gun", "istismar"],
     "configmgr": ["configmgr", "configuration manager", "sccm", "mecm", "software center", "ccmsetup",
@@ -200,8 +230,10 @@ BROAD_TAGS = {"auth", "network", "storage"}
 # Genel/zayıf etiketler: iki olayı birbirinden ayırmak için tek başına yeterli değil.
 WEAK_TAGS = {"update_install", "performance", "apps", "security"}
 
+# Roller yalnızca ayırt edici etiketlerle eşlenir: geniş "auth" etiketi ("after sign-in" gibi) her
+# kimlik doğrulama geçen sorunu etki alanı denetleyicisiyle ilgili gösterirdi.
 ROLE_TO_TAGS = {
-    "dc": {"dc", "auth"},
+    "dc": {"dc"},
     "rds": {"rds"},
     "hyperv": {"hyperv"},
     "wsus": {"update_install"},
@@ -209,7 +241,7 @@ ROLE_TO_TAGS = {
     "vpn": {"vpn"},
     "iis": {"iis"},
     "fileserver": {"storage", "network"},
-    "adcs": {"adcs", "auth"},
+    "adcs": {"adcs"},
     "avd": {"avd", "rds"},
     "bitlocker": {"bitlocker"},
     "autopilot": {"intune"},
@@ -220,9 +252,10 @@ TAG_LABELS_TR = {
     "rds": "Uzak Masaüstü (RDS/RDP)", "dc": "Etki alanı denetleyicisi", "auth": "Kimlik doğrulama",
     "vpn": "VPN", "bitlocker": "BitLocker", "boot": "Açılış/başlatma", "network": "Ağ",
     "update_install": "Güncelleme kurulumu", "printing": "Yazdırma", "hyperv": "Hyper-V/küme",
-    "avd": "AVD/FSLogix", "performance": "Performans", "audio": "Ses", "display": "Görüntü",
+    "avd": "AVD/FSLogix", "performance": "Performans", "audio": "Ses", "backup": "Yedekleme", "display": "Görüntü",
     "storage": "Depolama/dosya", "security": "Güvenlik (istismar)", "configmgr": "ConfigMgr",
     "intune": "Intune", "gpo": "Grup İlkesi", "iis": "IIS", "adcs": "Sertifika hizmetleri", "apps": "Uygulamalar",
+    "shell": "Masaüstü/Explorer",
 }
 
 
@@ -231,8 +264,20 @@ def _folded_padded(text: str) -> str:
     return " " + re.sub(r"\s+", " ", fold(text)) + " "
 
 
+NEGATION_RE = re.compile(
+    r"\b(?:does not|doesn't|do not|don't|is not|isn't|are not|aren't|will not|won't|not)\s+"
+    r"(?:\w+\s+){0,2}(?:affect|affected|impact|impacted|apply|applies|occur)\b|etkilemez|etkilenmez",
+    re.I)
+
+
+def strip_negated_sentences(text: str) -> str:
+    """"This issue does not affect Azure Virtual Desktop" gibi cümleler etiket üretmesin."""
+    sentences = re.split(r"(?<=[.!?])\s+|\n+", text or "")
+    return " ".join(s for s in sentences if not NEGATION_RE.search(s))
+
+
 def symptom_tags(text: str) -> list[str]:
-    t = _folded_padded(text or "")
+    t = _folded_padded(strip_negated_sentences(text or ""))
     found = []
     for tag, keys in SYMPTOM_TAGS.items():
         for k in keys:

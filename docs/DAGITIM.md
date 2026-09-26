@@ -98,5 +98,5 @@ Olay hafızası veri tabanında olduğu için yeniden başlatmalarda kaybolmaz. 
 | LLM | api.anthropic.com (veya kendi uç noktanız) |
 | Hava | api.open-meteo.com, geocoding-api.open-meteo.com |
 | Piyasa | www.tcmb.gov.tr, finans.truncgil.com |
-| Topluluk/haber | www.reddit.com, yayınların RSS adresleri |
+| Topluluk/haber | www.bleepingcomputer.com, borncity.com, www.windowslatest.com, www.askwoody.com, haber yayınlarının RSS adresleri |
 | Web araması | api.search.brave.com veya kendi SearXNG örneğiniz |

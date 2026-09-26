@@ -149,3 +149,19 @@ def test_turkish_numbers_and_ics():
     evs = parse_ics_today(ics, "Europe/Istanbul")
     assert [e["summary"] for e in evs] == ["Bakım günü", "CAB toplantısı"]
     assert evs[1]["start_local"] == "10:00"
+
+
+def test_geocode_ranking_real_response():
+    """Gerçek Open-Meteo yanıtı: "Kadıköy" aramasında İstanbul Kadıköy API sırasında 10. sıradan sonra gelir."""
+    import json
+
+    from bulten.daily.weather import rank_places
+
+    data = json.loads((FIXTURES / "geocode-kadikoy.json").read_text())
+    api_top10 = [(r["name"], r["admin1"]) for r in data["results"][:10]]
+    assert ("Kadıköy", "İstanbul") not in api_top10
+    ranked = rank_places(data["results"], "Kadıköy")
+    assert (ranked[0]["name"], ranked[0]["admin2"], ranked[0]["admin1"]) == ("Kadıköy", "Kadıköy", "İstanbul")
+    assert all(p["name"] == "Kadıköy" for p in ranked[:5]), "adı eşleşmeyen yer (Babadağ) öne geçmemeli"
+    only_ist = rank_places(data["results"], "Kadıköy", "istanbul")
+    assert {p["admin1"] for p in only_ist} == {"İstanbul"} and len(only_ist) == 2

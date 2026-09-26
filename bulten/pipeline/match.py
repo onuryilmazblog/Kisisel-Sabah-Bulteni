@@ -151,12 +151,52 @@ def _issue_candidates(conn: sqlite3.Connection, o: ObsRow, days: int) -> list[di
     return [_event_profile(conn, r) for r in rows]
 
 
+def _official_records(conn: sqlite3.Connection, event_id: int) -> tuple[list[str], set[str]]:
+    """Olaya bağlı resmî bilinen sorun kayıtlarının başlıkları ve (kısmen) düzelten KB'leri.
+
+    Olay özeti (evidence_level, state_json) analizde dolar; aynı toplama turunda oluşan olaylar için
+    de doğru sonuç vermesi için doğrudan gözlemlerden okunur.
+    """
+    titles: list[str] = []
+    fix_kbs: set[str] = set()
+    for r in conn.execute(
+            "SELECT o.title, o.fields_json FROM observations o JOIN sources s ON s.id = o.source_id "
+            "WHERE o.event_id = ? AND o.kind IN ('known_issue', 'cm_known_issue') AND s.trust = 'official'",
+            (event_id,)):
+        titles.append(r["title"])
+        f = jload(r["fields_json"], {})
+        # Microsoft açık sorunu, onu (kısmen) düzelten sonraki KB'lerin makalelerinde de listeler.
+        fix_kbs |= set(f.get("resolving_kbs") or []) | set(f.get("partial_fix_kbs") or [])
+    return titles, fix_kbs
+
+
+def _merge_fresh_event(conn: sqlite3.Connection, src: int, dst: int) -> bool:
+    """Bu turda açılmış (sürümü, bülteni ve kullanıcı durumu olmayan) bir olayı başka bir olaya taşır.
+
+    Daha önce analiz edilmiş veya kullanıcıya gösterilmiş olaylar birleştirilmez: okundu/takip
+    durumu ve gönderim geçmişi kaybolmasın.
+    """
+    if src == dst:
+        return False
+    for q in ("SELECT 1 FROM event_versions WHERE event_id = ?", "SELECT 1 FROM user_event_state WHERE event_id = ?",
+              "SELECT 1 FROM user_actions WHERE event_id = ?"):
+        if conn.execute(q, (src,)).fetchone():
+            return False
+    conn.execute("UPDATE observations SET event_id = ?, match_method = 'merged' WHERE event_id = ?", (dst, src))
+    conn.execute("UPDATE OR IGNORE event_aliases SET event_id = ? WHERE event_id = ?", (dst, src))
+    conn.execute("DELETE FROM events WHERE id = ?", (src,))
+    conn.execute("UPDATE events SET needs_analysis = 1 WHERE id = ?", (dst,))
+    return True
+
+
 def match_issue(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, float]:
     """Bilinen sorun veya saha raporunu mevcut bir sorun olayıyla eşleştirir."""
     official = o.trust == "official" and o.kind in ("known_issue", "cm_known_issue")
+    from_kb_article = official and o.fields.get("from") == "kb_article"
     cands = _issue_candidates(conn, o, 120 if official else 45)
     text = o.title + " " + o.fields.get("summary", "")[:300] + " " + (o.fields.get("canonical_title_en") or "")
     best: tuple[int | None, str, float] = (None, "", 0.0)
+    same_title: int | None = None
     for c in cands:
         kb_overlap = bool(o.kbs & c["kbs"])
         both_wrh = (official and o.external_key.startswith("wrh:")
@@ -170,13 +210,25 @@ def match_issue(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, f
         prod_overlap = bool(o.products & c["products"]) or not o.products or not c["products"]
         if not _tags_compatible(o.tags, c["tags"]):
             continue
+        off_titles, fix_kbs = _official_records(conn, c["id"]) if official else ([], set())
+        official_pair = official and (bool(off_titles) or c["evidence"] in ("ms_known_issue", "ms_official"))
+        if official_pair and any(title_similarity(o.title, t, technical=True) >= 0.9 for t in off_titles):
+            # Microsoft aynı sorunu her ürün için ayrı KB numarasıyla ama aynı başlıkla yayımlar
+            # (ör. WSUS sorunu Server 2025'te KB5122871, Server 2022'de KB5122882).
+            if same_title is None:
+                same_title = c["id"]
+            continue
         tag_overlap = bool(specific_tags(o.tags) & specific_tags(c["tags"]))
+        # KB makalesi, Release health'in "KB X ile (kısmen) düzeltildi" dediği sorunu X'in bilinen
+        # sorunu olarak listeliyorsa ve ayırt edici bir belirti ortaksa aynı sorundur.
+        fix_overlap = (from_kb_article and bool(o.kbs & fix_kbs)
+                       and bool((specific_tags(o.tags) - BROAD_TAGS) & (specific_tags(c["tags"]) - BROAD_TAGS)))
         sim = title_similarity(text, c["title"] + " " + c["signature"], technical=True)
         score = 0.0
-        if official and c["evidence"] in ("ms_known_issue", "ms_official") and sim < 0.3:
+        if official_pair and sim < (0.2 if fix_overlap else 0.3):
             # İki resmî kayıt (ör. KB makalesi ↔ Release health) başlıkları benzemiyorsa ayrı sorun kabul edilir.
             continue
-        if kb_overlap and tag_overlap:
+        if (kb_overlap or fix_overlap) and tag_overlap:
             score = 0.6 + 0.4 * sim
         elif kb_overlap and sim >= 0.45:
             score = 0.5 + 0.4 * sim
@@ -185,7 +237,14 @@ def match_issue(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, f
         elif sim >= 0.6 and prod_overlap:
             score = 0.4 + 0.5 * sim
         if score > best[2]:
-            best = (c["id"], "kb+tag" if kb_overlap and tag_overlap else "similarity", score)
+            method = "kb+tag" if kb_overlap and tag_overlap else "fixkb+tag" if fix_overlap else "similarity"
+            best = (c["id"], method, score)
+    if same_title is not None:
+        # Kayıt aynı başlıklı bir olaya ve "bu KB sorunu (kısmen) düzeltir" bağıyla başka bir olaya
+        # bağlanıyorsa ikisi aynı sorundur; aynı turda açılmış olay diğerine katılır (sıradan bağımsız sonuç).
+        if best[1] == "fixkb+tag" and best[2] >= 0.55 and _merge_fresh_event(conn, same_title, best[0]):
+            return best[0], "fixkb+tag", best[2]
+        return same_title, "same-official-title", 0.9
     if best[0] is not None and best[2] >= 0.55:
         return best
     return None, "", 0.0

@@ -167,17 +167,17 @@ def refresh_markets(fetcher: Fetcher, settings: dict) -> tuple[str, dict, str | 
     errors: list[str] = []
     if mset.get("show_tcmb", True) and any(k in wanted for k in ("USDTRY", "EURTRY")):
         try:
-            res = fetcher.get(cfg.tcmb_url, trusted=True, use_cache=False, accept="application/xml")
+            res = fetcher.get(cfg.tcmb_url, trusted=True, api=True, use_cache=False, accept="application/xml")
             blocks.append(parse_tcmb(res.text))
         except (FetchError, ET.ParseError) as exc:
             errors.append(f"TCMB: {exc}")
     provider = mset.get("provider", "truncgil")
     try:
         if provider == "truncgil":
-            res = fetcher.get(cfg.truncgil_url, trusted=True, use_cache=False, accept="application/json")
+            res = fetcher.get(cfg.truncgil_url, trusted=True, api=True, use_cache=False, accept="application/json")
             blocks.append(parse_truncgil(res.text, settings.get("timezone")))
         elif provider == "json" and cfg.market_json_url and cfg.market_json_mapping:
-            res = fetcher.get(cfg.market_json_url, trusted=True, use_cache=False, accept="application/json")
+            res = fetcher.get(cfg.market_json_url, trusted=True, api=True, use_cache=False, accept="application/json")
             blocks.append(parse_mapped_json(res.text, json.loads(cfg.market_json_mapping), "Kullanıcı tanımlı kaynak"))
         elif provider == "json":
             errors.append("JSON piyasa kaynağı seçili ama MARKET_JSON_URL / MARKET_JSON_MAPPING tanımlı değil.")

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!-- Kaynak: https://support.microsoft.com/en-us/servicing/os/windows-server/2026/09/kb5122871-windows-server-2025-security-update | alınma: 2026-09-26 | küçültüldü (yalnızca ana içerik) -->
+<html><head><title>September 8, 2026—KB5122871 (OS Build 26100.33438) | Microsoft Support</title><meta content="09/08/2026" name="ms.date"/><meta content="2026-09-17 08:43 AM" name="updated_at"/></head><body><main class="col col-md-9 mt-4" id="supMainContent" role="main" tabindex="-1">
+<h1 id="september-8-2026kb5122871-os-build-2610033438">September 8, 2026—KB5122871 (OS Build 26100.33438)</h1>
+<section>
+<div id="supAppliesToTableContainer">
+<details id="supAppliesToList"><summary>Applies To</summary><div><span>Windows Server 2025, all editions</span> </div></details>
+</div>
+</section>
+<div>
+<p>This cumulative update for Windows Server 2025 (KB5122871), includes the latest security fixes and improvements, along with non-security updates from last month’s optional preview release. Visit the <a href="https://learn.microsoft.com/windows/release-health/">Windows release health dashboard</a> for the latest status on this release.</p>
+<h2 id="announcements-and-messages">Announcements and messages</h2>
+<p>This section provides key notifications related to this release, including announcements, change logs, and end-of-support notices.</p>
+<p><strong>Windows Secure Boot certificate expiration</strong></p>
+<p><strong>Important:</strong> Secure Boot certificates used by most Windows devices are set to expire starting in June 2026. Microsoft has been updating these certificates on consumer and non-managed business devices over the past several months. Devices that haven’t received the newer certificates will continue to start and operate normally, and standard Windows updates will continue to install. Updated certificates will continue to be delivered through Windows Update in the coming months.</p>
+<h2 id="improvements">Improvements</h2>
+<p>This security update contains fixes and quality improvements from <a href="/en-us/servicing/os/windows-server/2026/08/kb5120233-windows-server-2025-security-update?branch=pr-en-us-325">KB5120233</a> (released August 11, 2026). The following summary outlines key issues addressed by this update. Also, included are available new features. The bold text within the brackets indicates the item or area of the change. </p>
+<ul>
+<li><p><strong>[Certificates]</strong> This update improves application compatibility during Windows certificate-authority updates, helping applications continue to work as expected as Microsoft transitions to newer signing certificates</p>
+</li>
+<li><p><strong>[Date and Time]</strong> This update adjusts Morocco Standard Time to reflect Morocco's transition to permanent UTC+00:00 effective September 20, 2026. This change ensures that the correct local time is displayed after the transition.</p>
+</li>
+<li><p><strong>[Networking]</strong> This update improves network failover on Windows Server systems by helping connections respond more quickly when a network adapter is disconnected. This helps network storage and file access continue to work as expected.</p>
+</li>
+<li><p><strong>[Remote Desktop]</strong> This update improves Remote Desktop audio redirection, helping audio from remote sessions play correctly on the local device.</p>
+</li>
+<li><p><strong>[Sysmon]</strong></p>
+<ul>
+<li>This update improves Sysmon's Process Tampering detection by preventing false Event ID 25 alerts for normal Windows Session Manager (smss.exe) activity.</li>
+<li>This update improves Sysmon reliability during file monitoring, helping prevent unexpected system crashes when archive directories are unavailable.</li>
+<li>This update improves Sysmon tampering detection by making executable file validation more reliable and consistent.</li>
+<li>This update improves Sysmon file archiving reliability, helping monitored file operations complete as expected even when archive directories cannot be accessed.</li>
+</ul>
+</li>
+</ul>
+<p>If you've already installed previous updates, your device will download and install only the new updates included in this package.</p>
+<p>For more information about security vulnerabilities, see the <a href="https://portal.msrc.microsoft.com/security-guidance">Security Update Guide</a> and the <a href="https://msrc.microsoft.com/update-guide/releaseNote/2026-Sep">September 2026 Security Updates</a>.</p>
+<h2 id="windows-server-2025-servicing-stack-update-kb5122870---2610033434">Windows Server 2025 servicing stack update (KB5122870) - 26100.33434</h2>
+<p>This update makes quality improvements to the servicing stack, which is the component that installs Windows updates. Servicing stack updates (SSU) ensure that you have a robust and reliable servicing stack so that your devices can receive and install Microsoft updates. To learn more about SSUs, see <a href="https://learn.microsoft.com/windows/deployment/update/servicing-stack-updates#simplifying-on-premises-deployment-of-servicing-stack-updates">Simplifying on-premises deployment of servicing stack updates</a>.</p>
+<h2 id="known-issues-in-this-update">Known issues in this update</h2>
+<details>
+<summary>Windows Server Update Services (WSUS) does not display error details</summary>
+<p>After installing <a href="../../2025/10/october-23-2025-kb5070881-os-build-26100-6905-out-of-band">KB5070881</a> or later updates, Windows Server Update Services (WSUS) does not display synchronization error details within its error reporting. This functionality is temporarily removed to address the Remote Code Execution Vulnerability, <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287">CVE-2025-59287</a>.</p>
+</details>
+<details>
+<summary>Remote Desktop Services might stop responding after September 2026 security update</summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 Windows security update, some organizations might experience issues with Remote Desktop Services (RDS).</p>
+<p>In some environments, RDS might become unstable, resulting in RDP connections failing after several minutes, sign-in issues, or servers hanging at "Please wait for the Remote Desktop Configuration". Related tools, including Microsoft Management Console (MMC), RDS Licensing Diagnoser, and File Explorer might also become unresponsive. Additionally, the Windows Update page might stop responding and continuously display a loading indicator.</p>
+<div>
+<p>Note</p>
+<p>This issue does not affect Windows 365 or Azure Virtual Desktop.</p>
+</div>
+<p><strong>Resolution</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 14, 2026 such as <a href="/en-us/help/5129235">KB5129235</a>. We recommend you install the latest Windows update for your device as it contains important improvements and issue resolutions, including this one.</p>
+</details>
+<h2 id="how-to-get-this-update">How to get this update</h2>
+<h3 id="before-you-install-this-update">Before you install this update</h3>
+<p>Microsoft combines the latest servicing stack update (SSU) for your operating system with the latest cumulative update (LCU). For general information about SSUs, see <a href="https://docs.microsoft.com/windows/deployment/update/servicing-stack-updates">Servicing stack updates</a>.</p>
+<p><strong>Deployment</strong></p>
+<p>If you deploy dynamic updates such as this update to an existing Windows image, ensure the <strong>boot.stl</strong> file is included as part of the installation media. Failure to include the file might prevent devices from successfully starting from the installation media and can result in error code <code>0xc0430001</code>.</p>
+<div>
+<p>Note</p>
+<p>The <strong>boot.stl</strong> file is used during Secure Boot validation and must match the Windows version and architecture of the image you are updating.</p>
+</div>
+<p>To ensure the <strong>boot.stl</strong> file is included as part of the installation media, do one of the following:</p>
+<ul>
+<li>Use the <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update#update-winpe">Update WinPE</a> script to update an existing Windows image. <strong>(Recommended)</strong></li>
+<li>Manually copy the <strong>boot.stl</strong> file from the device <strong>Windows\Boot\EFI</strong> folder to the corresponding folder on your installation media before deploying the update.</li>
+</ul>
+<p>For information about how to apply Dynamic Update packages to existing Windows images, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<h3 id="install-this-update">Install this update</h3>
+<p>To install this update, use one of the following Windows and Microsoft release channels.</p>
+<hr/>
+<div id="tabgroup_1">
+<ul>
+<li>
+<a href="#tabpanel_1_windows-update">Windows Update</a>
+</li>
+<li>
+<a href="#tabpanel_1_business">Business</a>
+</li>
+<li>
+<a href="#tabpanel_1_catalog">Catalog</a>
+</li>
+<li>
+<a href="#tabpanel_1_server-update-services">Server Update Services</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows-update">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update and Microsoft Update.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_business">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update for Business in accordance with configured policies.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_catalog">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>To install this release from the <a href="https://catalog.update.microsoft.com/Search.aspx?q=KB5122871">Microsoft Update Catalog</a>, follow these instructions:<br/> <br/> <strong>Before you install this update</strong>, the standalone package(s) for this update is available from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5122871">Microsoft Update Catalog</a> website. This KB contains one or more MSU files that require installation in a specific order.<br/><br/>You can install this update using Method 1 (install all MSU files together) or Method 2 (install each MSU file individually, in order).<br/><br/><strong>Method 1: Install all MSU files together</strong><br/><br/>Download all MSU files for KB5122871 from Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target update. DISM will use the folder specified in <strong>PackagePath</strong> to discover and install one or more prerequisite MSU files as needed.<br/><br/><strong>Updating Windows PC</strong><br/><br/>To apply this update to a running Windows PC, run the following command from an elevated Command Prompt:<br/><br/><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5122871-x64_e7ef80a2b3ab2ffeae7b50ad402ca7d30fe39f9d.msu. </code><br/>Or, run the following command from an elevated Windows PowerShell prompt:<br/><br/><code>Add-WindowsPackage -Online -PackagePath c:\packages\windows11.kb5122871-x64_e7ef80a2b3ab2ffeae7b50ad402ca7d30fe39f9d.msu. </code><br/>Or use <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19#bkmk_wusa_and_checkpoint">Windows Update Standalone Installer</a> to install the target update.<br/><br/><strong>Updating Windows Installation media</strong><br/><br/>To apply this update to Windows Installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.<br/><br/><br/><strong>Note:</strong> When downloading other Dynamic Update packages, ensure they match the same month as this KB. If the SafeOS Dynamic Update or Setup Dynamic Update is not available for the same month as this KB, use the most recently published version of each.<br/>To add this update to a mounted image, run the following command from an elevated Command Prompt:<br/><br/><code>DISM /Image:mountdir /Add-Package /PackagePath:Windows11.0-kb5122871-x64_e7ef80a2b3ab2ffeae7b50ad402ca7d30fe39f9d.msu.</code><br/> Or, run the following command from an elevated Windows PowerShell prompt:<br/><br/><code>Add-WindowsPackage -Path "c:\offline" -PackagePath Windows11.0-kb5122871-x64_e7ef80a2b3ab2ffeae7b50ad402ca7d30fe39f9d.msu. -PreventPending</code><br/><strong>Method 2: Install each MSU file individually, in order</strong><br/><br/>Download and install each MSU file individually either using DISM or <a href="/en-us/topic/description-of-the-windows-update-standalone-installer-in-windows-799ba3df-ec7e-b05e-ee13-1cdae8f23b19">Windows Update Standalone Installer</a> in the following order:<br/><br/><ol><li>windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu </li><li>windows11.0-kb5122871-x64_e7ef80a2b3ab2ffeae7b50ad402ca7d30fe39f9d.msu.</li></ol><strong>Note:</strong> This latest cumulative update includes updates for AI components. Even though the AI component updates are included in the update, the AI components are only applicable to Windows Copilot+ PCs and will not install on Windows PC or Windows Server.<br/></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_server-update-services">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update will automatically sync with Windows Server Update Services (WSUS) if you configure <strong>Product</strong> and <strong>Classification</strong> as follows:<br/><ul><li><strong>Product</strong>: Microsoft Server operating system-24H2</li><li><strong>Classification</strong>: Security Updates</li></ul></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+<h2 id="file-information">File information</h2>
+<p>For a list of the files provided in this update, download the file information for cumulative update <a href="https://go.microsoft.com/fwlink/?LinkId=2378920">KB5122871</a>.</p>
+<p>For a list of the files provided in the servicing stack update, download the file information for <a href="https://go.microsoft.com/fwlink/?LinkId=2379400">SSU KB5122870 - version 26100.33434</a>.</p>
+<details>
+<summary><strong>Change log</strong></summary>
+<table>
+<thead>
+<tr>
+<th><strong>Change date</strong></th>
+<th><strong>Change description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>September 14, 2026</strong></td>
+<td>Added the resolution for the known issue "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+<tr>
+<td><strong>September 12, 2026</strong></td>
+<td>Added a known issue, "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+</tbody>
+</table>
+</details>
+</div>
+</main></body></html>

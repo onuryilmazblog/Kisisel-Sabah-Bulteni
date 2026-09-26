@@ -44,6 +44,7 @@ CHANGE_TR = {
     "workaround_updated": "Geçici çözüm güncellendi", "fix": "Düzeltme yayımlandı", "reopened": "Yeniden açıldı",
     "spread": "Daha fazla saha raporu", "stage_changed": "Aşama değişti", "action_required": "Yönetici aksiyonu",
     "deprecation": "Kaldırma/destek sonu", "support_ending": "Destek bitişi yaklaşıyor", "pulled": "Geri çekildi",
+    "partial_fix": "Kısmi düzeltme",
 }
 
 
@@ -107,6 +108,7 @@ def compute_issue_state(obs: list[dict]) -> dict[str, Any]:
     tags: set[str] = set()
     okbs: set[str] = set()
     rkbs: set[str] = set()
+    pkbs: set[str] = set()
     workaround_texts: list[str] = []
     kir = False
     for o in primary:
@@ -116,6 +118,7 @@ def compute_issue_state(obs: list[dict]) -> dict[str, Any]:
         okbs.update(f.get("originating_kbs") or ([f["kb"]] if f.get("kb") and o["kind"] == "known_issue" else []))
         if o["evidence"] != "field":
             rkbs.update(f.get("resolving_kbs") or [])
+            pkbs.update(f.get("partial_fix_kbs") or [])
             if f.get("workaround"):
                 workaround_texts.append(f["workaround"])
             kir = kir or bool(f.get("kir"))
@@ -142,6 +145,9 @@ def compute_issue_state(obs: list[dict]) -> dict[str, Any]:
             "refs": _refs(obs),
         },
     }
+    if pkbs - rkbs:
+        # Yalnızca doluysa eklenir: boş alan eski durumların özetini (state_hash) değiştirmesin.
+        state["partial_fix_kbs"] = sorted(pkbs - rkbs)
     state["risk"] = compute_risk(state)
     return state
 
@@ -319,6 +325,10 @@ def diff_states(prev: dict[str, Any], new: dict[str, Any]) -> tuple[list[str], b
         added_r = set(new.get("resolving_kbs") or []) - set(prev.get("resolving_kbs") or [])
         if added_r:
             add("fix", "Düzeltme içeren güncelleme: " + ", ".join(f"KB{k}" for k in sorted(added_r)) + ".")
+        added_pf = set(new.get("partial_fix_kbs") or []) - set(prev.get("partial_fix_kbs") or []) - added_r
+        if added_pf:
+            add("partial_fix", "Sorunu kısmen düzelten güncelleme: " + ", ".join(f"KB{k}" for k in sorted(added_pf))
+                + " (tam düzeltme değil).")
         if ne == "field" and (new.get("field_bucket") or 0) > (prev.get("field_bucket") or 0) and prev.get("field_bucket"):
             add("spread", f"Bağımsız saha raporu sayısı arttı ({new['meta'].get('field_sources')}).")
     elif t == "release":

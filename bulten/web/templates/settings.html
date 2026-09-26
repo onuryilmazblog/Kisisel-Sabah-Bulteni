@@ -33,8 +33,9 @@
 </fieldset>
 
 <fieldset id="konum"><legend>3. Konum (hava durumu)</legend>
-  <p class="help">Şehir veya ilçe adı yazıp listeden seçin. Mevcut: <strong id="loc-current">{% if s.location %}{{ s.location.name }}{% if s.location.admin1 %}, {{ s.location.admin1 }}{% endif %}{% else %}seçilmedi{% endif %}</strong></p>
-  <div class="loc"><input type="search" id="loc-q" placeholder="örn. Kadıköy"> <button type="button" class="btn" id="loc-search">Ara</button></div>
+  <p class="help">Şehir veya ilçe adı yazıp listeden seçin; aynı adlı yerleri il adıyla daraltabilirsiniz
+    (örn. <em>Kadıköy, İstanbul</em>). Mevcut: <strong id="loc-current">{% if s.location %}{{ s.location.name }}{% if s.location.admin1 %}, {{ s.location.admin1 }}{% endif %}{% else %}seçilmedi{% endif %}</strong></p>
+  <div class="loc"><input type="search" id="loc-q" placeholder="örn. Kadıköy, İstanbul"> <button type="button" class="btn" id="loc-search">Ara</button></div>
   <ul id="loc-results" class="loc-results"></ul>
   <input type="hidden" name="location_json" id="location_json" value="">
   <label>İlçe notu (isteğe bağlı) <input type="text" name="district" value="{{ s.location.district if s.location and s.location.district else '' }}"></label>

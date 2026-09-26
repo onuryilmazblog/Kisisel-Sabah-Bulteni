@@ -23,8 +23,11 @@ def text_of(node: Tag | NavigableString | None, *, sep_cells: str = " · ") -> s
         return str(node)
     parts: list[str] = []
     _walk(node, parts, sep_cells)
-    text = "".join(parts)
-    text = text.replace("\xa0", " ")
+    return normalize_text("".join(parts))
+
+
+def normalize_text(text: str) -> str:
+    text = text.replace("\xa0", " ").replace("\u200b", "")
     text = re.sub(r"[ \t\r\f\v]+", " ", text)
     text = re.sub(r" *\n *", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)

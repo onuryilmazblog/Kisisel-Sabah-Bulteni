@@ -125,6 +125,8 @@ def _event_text(ev: sqlite3.Row, state: dict, version: sqlite3.Row) -> str:
         lines.append("İlgili KB: " + ", ".join("KB" + k for k in kbs))
     if state.get("resolving_kbs"):
         lines.append("Düzelten KB: " + ", ".join("KB" + k for k in state["resolving_kbs"]))
+    if state.get("partial_fix_kbs"):
+        lines.append("Kısmen düzelten KB (tam düzeltme değil): " + ", ".join("KB" + k for k in state["partial_fix_kbs"]))
     if state.get("stage"):
         lines.append(f"Aşama: {STAGE_TR.get(state['stage'], state['stage'])}")
     if state.get("release_type"):
@@ -171,7 +173,8 @@ def _quote_in_evidence(quote: str, evidence_text: str) -> bool:
 def validate_llm_output(data: dict, evidence: list[dict], state: dict) -> tuple[dict | None, list[str]]:
     notes: list[str] = []
     ev_text = "\n".join(f"{e['title']}\n{e['text']}" for e in evidence)
-    allowed_kbs = set(extract_kbs(ev_text)) | set(state.get("originating_kbs") or []) | set(state.get("resolving_kbs") or [])
+    allowed_kbs = (set(extract_kbs(ev_text)) | set(state.get("originating_kbs") or []) | set(state.get("resolving_kbs") or [])
+                   | set(state.get("partial_fix_kbs") or []))
     if state.get("kb"):
         allowed_kbs.add(state["kb"])
     allowed_cves = set(extract_cves(ev_text))
@@ -269,6 +272,10 @@ def template_summary(conn: sqlite3.Connection, version_id: int, settings: dict) 
             k = ", ".join("KB" + x for x in state["resolving_kbs"])
             actions.append({"text": f"Düzeltmeyi içeren güncellemeyi ({k}) test halkanızda değerlendirin.",
                             "basis": "kaynak", "evidence_quote": k})
+        elif state.get("partial_fix_kbs"):
+            k = ", ".join("KB" + x for x in state["partial_fix_kbs"])
+            actions.append({"text": f"{k} sorunu yalnızca kısmen düzeltiyor; kalan belirtiler için kaynaktaki "
+                                    "açıklamayı izleyin.", "basis": "kaynak", "evidence_quote": k})
         if state.get("evidence") == "field":
             actions.append({"text": "Microsoft teyidi yok. Kendi ortamınızda belirtiyi gözlemleyip gözlemlemediğinizi "
                                     "kontrol edin; yaygın dağıtımı pilot grupla sınırlamayı değerlendirin.",

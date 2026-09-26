@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!-- Kaynak: https://support.microsoft.com/en-us/servicing/os/windows-server/2026/09/kb5122882-windows-server-2022-security-update | alınma: 2026-09-26 | küçültüldü (yalnızca ana içerik) -->
+<html><head><title>September 8, 2026—KB5122882 (OS Build 20348.5622) | Microsoft Support</title><meta content="09/08/2026" name="ms.date"/><meta content="2026-09-17 08:43 AM" name="updated_at"/></head><body><main class="col col-md-9 mt-4" id="supMainContent" role="main" tabindex="-1">
+<h1 id="september-8-2026kb5122882-os-build-203485622">September 8, 2026—KB5122882 (OS Build 20348.5622)</h1>
+<section>
+<div id="supAppliesToTableContainer">
+<details id="supAppliesToList"><summary>Applies To</summary><div><span>Windows Server 2022</span> </div></details>
+</div>
+</section>
+<div>
+<p>This cumulative update for Windows Server 2022 (KB5122882), includes the latest security fixes and improvements, along with non-security updates from last month’s optional preview release. Visit the <a href="https://learn.microsoft.com/windows/release-health/">Windows release health dashboard</a> for the latest status on this release.</p>
+<h2 id="announcements-and-messages">Announcements and messages</h2>
+<p>This section provides key notifications related to this release, including announcements, change logs, and end-of-support notices. </p>
+<p><strong>Windows Secure Boot certificate expiration</strong></p>
+<p><strong>Important:</strong> Secure Boot certificates used by most Windows devices are set to expire starting in June 2026. Microsoft has been updating these certificates on consumer and non-managed business devices over the past several months. Devices that haven’t received the newer certificates will continue to start and operate normally, and standard Windows updates will continue to install. Updated certificates will continue to be delivered through Windows Update in the coming months. For more information, see <a href="/en-us/topic/windows-secure-boot-certificate-expiration-and-ca-updates-7ff40d33-95dc-4c3c-8725-a9b95457578e">Windows Secure Boot certificate expiration and CA updates</a>.</p>
+<h2 id="improvements">Improvements</h2>
+<p>This security update contains fixes and quality improvements from <a href="/en-us/help/5120242">KB5120242</a> (released August 11, 2026). The following summary outlines key issues addressed by this update. Also, included are available new features. The bold text within the brackets indicates the item or area of the change.</p>
+<ul>
+<li><p><strong>[Certificates]</strong> This update improves application compatibility during Windows certificate-authority updates, helping applications continue to work as expected as Microsoft transitions to newer signing certificates.</p>
+</li>
+<li><p><strong>[Date and Time]</strong> This update adjusts Morocco Standard Time to reflect Morocco's transition to permanent UTC+00:00 effective September 20, 2026. This change ensures that the correct local time is displayed after the transition.</p>
+</li>
+<li><p><strong>[Hyper-V]</strong> This update addresses an issue that might cause a limited number of Windows Server 2022 virtual machines to intermittently encounter a stop error 0x139 resulting in an unexpected restart.</p>
+</li>
+<li><p><strong>[Networking]</strong> This update improves network failover on Windows Server systems by helping connections respond more quickly when a network adapter is disconnected. This helps network storage and file access continue to work as expected.</p>
+</li>
+<li><p><strong>[Remote desktop]</strong> This update improves Remote Desktop audio redirection, helping audio from remote sessions play correctly on the local device.</p>
+</li>
+</ul>
+<p>If you've already installed previous updates, your device will download and install only the new updates included in this package.</p>
+<p>For more information about security vulnerabilities, see the <a href="https://portal.msrc.microsoft.com/security-guidance">Security Update Guide</a> and the <a href="https://msrc.microsoft.com/update-guide/releaseNote/2026-Sep">September 2026 Security Updates</a>.</p>
+<h2 id="windows-server-2022-servicing-stack-update-kb5122881---203485614">Windows Server 2022 servicing stack update (KB5122881) - 20348.5614</h2>
+<p>This update makes quality improvements to the servicing stack, which is the component that installs Windows updates. Servicing stack updates (SSU) ensure that you have a robust and reliable servicing stack so that your devices can receive and install Microsoft updates. To learn more about SSUs, see <a href="https://learn.microsoft.com/windows/deployment/update/servicing-stack-updates#simplifying-on-premises-deployment-of-servicing-stack-updates">Simplifying on-premises deployment of servicing stack updates</a>.</p>
+<h2 id="known-issues-in-this-update">Known issues in this update</h2>
+<details>
+<summary>Windows Server Update Services (WSUS) does not display error details</summary>
+<p>After installing <a href="../../2025/10/october-23-2025-kb5070884-os-build-20348-4297-out-of-band">KB5070884</a> or later updates, Windows Server Update Services (WSUS) does not display synchronization error details within its error reporting. This functionality is temporarily removed to address the Remote Code Execution Vulnerability, <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287">CVE-2025-59287</a>.</p>
+</details>
+<details>
+<summary>Remote Desktop Services might stop responding after September 2026 security update</summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 Windows security update, some organizations might experience issues with Remote Desktop Services (RDS).</p>
+<p>In some environments, RDS might become unstable, resulting in RDP connections failing after several minutes, sign-in issues, or servers hanging at "Please wait for the Remote Desktop Configuration". Related tools, including Microsoft Management Console (MMC), RDS Licensing Diagnoser, and File Explorer might also become unresponsive. Additionally, the Windows Update page might stop responding and continuously display a loading indicator.</p>
+<div>
+<p>Note</p>
+<p>This issue does not affect Windows 365 or Azure Virtual Desktop.</p>
+</div>
+<p><strong>Resolution</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 14, 2026 such as <a href="/en-us/help/5129237">KB5129237</a>. We recommend you install the latest Windows update for your device as it contains important improvements and issue resolutions, including this one.</p>
+</details>
+<h2 id="how-to-get-this-update">How to get this update</h2>
+<h3 id="before-you-install-this-update">Before you install this update</h3>
+<p>Microsoft now combines the latest servicing stack update (SSU) for your operating system with the latest cumulative update (LCU). For general information about SSUs, see <a href="https://docs.microsoft.com/windows/deployment/update/servicing-stack-updates">Servicing stack updates</a>.</p>
+<p>Prerequisite for offline OS image servicing:</p>
+<p>Make sure that your image includes <a href="/en-us/topic/34d4aff3-fd05-4270-b288-4ab6379c7f81">KB5030216</a> (09/12/2023) or a later LCU. If not, install it on your offline media before you install the latest update. This LCU updates the SSU version to 20348.1960. That is the minimum SSU version you must have to prevent error 0x800f0823 (CBS_E_NEW_SERVICING_STACK_REQUIRED).</p>
+<p><strong>Deployment</strong></p>
+<p>If you deploy dynamic updates such as this update to an existing Windows image, ensure the <strong>boot.stl</strong> file is included as part of the installation media. Failure to include the file might prevent devices from successfully starting from the installation media and can result in error code <code>0xc0430001</code>.</p>
+<div>
+<p>Note</p>
+<p>The <strong>boot.stl</strong> file is used during Secure Boot validation and must match the Windows version and architecture of the image you are updating.</p>
+</div>
+<p>To ensure the <strong>boot.stl</strong> file is included as part of the installation media, do one of the following:</p>
+<ul>
+<li>Use the <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update#update-winpe">Update WinPE</a> script to update an existing Windows image. <strong>(Recommended)</strong></li>
+<li>Manually copy the <strong>boot.stl</strong> file from the device <strong>Windows\Boot\EFI</strong> folder to the corresponding folder on your installation media before deploying the update.</li>
+</ul>
+<p>For information about how to apply Dynamic Update packages to existing Windows images, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<h3 id="install-this-update">Install this update</h3>
+<p>To install this update, use one of the following Windows and Microsoft release channels.</p>
+<hr/>
+<div id="tabgroup_1">
+<ul>
+<li>
+<a href="#tabpanel_1_windows-update">Windows Update</a>
+</li>
+<li>
+<a href="#tabpanel_1_business">Business</a>
+</li>
+<li>
+<a href="#tabpanel_1_catalog">Catalog</a>
+</li>
+<li>
+<a href="#tabpanel_1_server-update-services">Server Update Services</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows-update">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update and Microsoft Update.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_business">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update for Business in accordance with configured policies.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_catalog">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>To get the standalone package for this update, go to the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5122882">Microsoft Update Catalog</a> website.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_server-update-services">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update automatically syncs with Windows Server Update Services (WSUS) if you configure <strong>Products</strong> and <strong>Classifications</strong> as follows:<br/><ul><li><strong>Product</strong>: Microsoft Server operating system-21H2</li><li><strong>Classification</strong>: Security Updates</li></ul></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+<h2 id="file-information">File Information</h2>
+<p>For a list of the files provided in this update, download the file information for <a href="https://go.microsoft.com/fwlink/?LinkId=2378919">cumulative update KB5122882</a>. </p>
+<p>For a list of the files provided in the servicing stack update, download the file information for the <a href="https://go.microsoft.com/fwlink/?LinkId=2378929">SSU KB5122881 - version 20348.5614</a>.</p>
+<details>
+<summary><strong>Change log</strong></summary>
+<table>
+<thead>
+<tr>
+<th><strong>Change date</strong></th>
+<th><strong>Change description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>September 14, 2026</strong></td>
+<td>Added the resolution for the known issue "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+<tr>
+<td><strong>September 12, 2026</strong></td>
+<td>Added a known issue, "Remote Desktop Services might stop responding after September 2026 security update".</td>
+</tr>
+</tbody>
+</table>
+</details>
+</div>
+</main></body></html>

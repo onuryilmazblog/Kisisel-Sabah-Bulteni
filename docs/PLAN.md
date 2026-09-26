@@ -50,14 +50,26 @@ Hava, piyasa ve takvim `daily_data` tablosunda, olay hafızasından ayrı işlen
 | 2 | Hava, piyasalar, haberler (kategori tekilleştirme), topluluk/saha sinyalleri ve web araması, e-posta. |
 | 3 | Blog/RSS, YouTube, takvim; ek ince ayarlar. |
 
-## Geliştirme ortamı kısıtı
+## Canlı doğrulama durumu
 
-Geliştirmenin yapıldığı bulut konteynerinde ağ politikası learn.microsoft.com,
-support.microsoft.com, reddit, open-meteo, api.telegram.org gibi adresleri
-engelliyor. Bu yüzden:
+İlk geliştirme turunda bulut konteynerinin ağ politikası Microsoft ve diğer dış siteleri engellediği için
+Windows release health ve support.microsoft.com ayrıştırıcıları elle hazırlanmış örneklerle yazılmıştı.
+Ağ erişimi açıldıktan sonra (2026-09-26):
 
-- Kaynak adreslerinin varlığı arama motoru dizini üzerinden doğrulandı (canlı HTTP kontrolü değil).
-- Intune/ConfigMgr ayrıştırıcıları Microsoft'un gerçek markdown kaynağından alınan örneklerle test edildi.
-- Windows release health ve support.microsoft.com HTML ayrıştırıcıları, belgelenmiş/gözlemlenen başlık kalıplarına göre hazırlanan örneklerle test edildi; canlı sayfaya karşı **test edilmedi**.
-- Hiçbir dış entegrasyon (Telegram, SMTP, Anthropic, Open-Meteo, TCMB, Truncgil, Brave) bu ortamda canlı çalıştırılmadı. Uygulama bunun için `bulten kaynak-dogrula` komutu ve arayüzde "Kaynağı test et" düğmesi sunar.
-- İstisna: Intune ve ConfigMgr kaynakları (raw.githubusercontent.com üzerinden MicrosoftDocs/memdocs) bu ortamdan canlı okundu ve olay hafızası, bülten ve worker adımlarından uçtan uca geçirildi.
+- `bulten kaynak-dogrula --hepsi` ile 63 kaynak/sağlayıcı canlı denendi; 59'u doğrulandı. Kalan dördü (Reddit
+  ×3, Webrazzi) robots.txt nedeniyle okunamıyor ve varsayılan olarak kapatıldı. Ayrıntı: KAYNAKLAR.md.
+- Release health (21 durum/çözülen sorunlar sayfası + message center) ve support.microsoft.com (11 güncelleme
+  geçmişi sayfası, KB makaleleri) ayrıştırıcıları gerçek sayfalara karşı test edildi. Bulunan hatalar
+  düzeltildi ve gerçek sayfalardan küçültülmüş örnekler `tests/fixtures/ms-real/` altına eklendi:
+  - Güncelleme geçmişi KB listesi ana içerikte değil, tüm ürün ailesini içeren sol menüde; eski ayrıştırıcı
+    hiç KB bulamıyordu. Artık ürünün menü kategorisi okunuyor.
+  - KB makalelerinde bilinen sorunlar `<details>` blokları; eski ayrıştırıcı hepsini tek kayıtta birleştiriyordu.
+  - Release health'te sorun kuyruğu iç içe div'lerde; "affected platforms listed below" cümlesi etiket sanılıyordu.
+  - "Partially resolved" ifadesindeki KB tam düzeltme sayılıyordu; artık ayrı (`partial_fix_kbs`).
+  - Open-Meteo API alan adının robots.txt'si tarayıcılara `Disallow: /` döndürüyor; belgelenmiş API
+    çağrıları robots.txt denetiminden ayrıldı (sayfa/besleme okumalarında robots.txt uygulanmaya devam ediyor).
+- Gerçek verilerle uçtan uca tur (toplama → eşleştirme → analiz → bülten → web arayüzü) çalıştırıldı. Aynı
+  sorunun ürün başına farklı KB numarasıyla yayımlanması tekrar eden olaylar üretiyordu; eşleştirme buna göre
+  düzeltildi ve gerçek sayfalarla regresyon testi eklendi. Değişmeyen içerikle ikinci toplama 0 yeni sürüm üretti.
+- Canlı çalıştırılmayanlar: Telegram, SMTP, Anthropic API (anahtar/sunucu yok), Brave/SearXNG web araması
+  (yapılandırılmadı), YouTube transkripti.

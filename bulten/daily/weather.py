@@ -7,6 +7,7 @@ bülten bunu açıkça belirtir. Kullanıcı bir CAP/Atom/RSS uyarı beslemesi a
 from __future__ import annotations
 
 import json
+import re
 from urllib.parse import urlencode
 
 import feedparser
@@ -15,6 +16,7 @@ from datetime import datetime
 
 from ..config import load_config
 from ..net.fetcher import Fetcher, FetchError
+from ..textutil import fold
 from ..timeutil import now_iso, tz
 
 WMO_TR = {
@@ -29,19 +31,38 @@ WMO_TR = {
 MGM_URL = "https://www.mgm.gov.tr/meteouyari/"
 
 
-def geocode(fetcher: Fetcher, query: str, count: int = 8) -> list[dict]:
+def geocode(fetcher: Fetcher, query: str, count: int = 10) -> list[dict]:
+    """Konum araması. Sonuçlar kullanıcıya liste olarak sunulur; konum asla tahminle seçilmez.
+
+    Open-Meteo sonuçları nüfusa göre sıralar ve nüfus verisi olmayan ilçe merkezlerini geriye iter
+    (canlı: "Kadıköy" aramasında İstanbul Kadıköy ilk 10'da yok). Bu yüzden 40 sonuç alınır, il/ilçe
+    merkezleri öne alınır ve "Kadıköy, İstanbul" biçimindeki sorgularda virgülden sonrası il/ilçe/ülke
+    filtresi olarak uygulanır.
+    """
     cfg = load_config()
+    name, _, where = query.partition(",")
     url = f"{cfg.open_meteo_geocoding_base}/v1/search?" + urlencode(
-        {"name": query, "count": count, "language": "tr", "format": "json"})
+        {"name": name.strip(), "count": 40, "language": "tr", "format": "json"})
     # Etkileşimli arama: kullanıcı beklemesin diye tek deneme.
-    res = fetcher.get(url, trusted=True, use_cache=False, accept="application/json", retries=0)
-    data = json.loads(res.text)
+    res = fetcher.get(url, trusted=True, api=True, use_cache=False, accept="application/json", retries=0)
+    return rank_places(json.loads(res.text).get("results") or [], name.strip(), where.strip(), count)
+
+
+def rank_places(results: list[dict], name: str, where: str = "", count: int = 10) -> list[dict]:
+    want = fold(where)
     out = []
-    for r in data.get("results") or []:
-        out.append({"name": r.get("name"), "admin1": r.get("admin1"), "admin2": r.get("admin2"),
-                    "country": r.get("country"), "country_code": r.get("country_code"),
-                    "lat": r.get("latitude"), "lon": r.get("longitude"), "timezone": r.get("timezone")})
-    return out
+    for i, r in enumerate(results):
+        place = {"name": r.get("name"), "admin1": r.get("admin1"), "admin2": r.get("admin2"),
+                 "country": r.get("country"), "country_code": r.get("country_code"),
+                 "lat": r.get("latitude"), "lon": r.get("longitude"), "timezone": r.get("timezone")}
+        if want and not any(want in fold(place.get(k) or "") for k in ("admin1", "admin2", "country")):
+            continue
+        pname = fold(place["name"] or "")
+        district = fold(re.sub(r"\s+(İlçesi|ilçesi|İli|ili)$", "", place["admin2"] or ""))
+        exact = pname == fold(name)
+        seat = (r.get("feature_code") or "") in ("PPLC", "PPLA", "PPLA2") or pname == district
+        out.append((0 if exact else 1, 0 if seat else 1, i, place))
+    return [x[3] for x in sorted(out, key=lambda x: x[:3])][:count]
 
 
 def fetch_weather(fetcher: Fetcher, location: dict, tzname: str) -> dict:
@@ -54,7 +75,7 @@ def fetch_weather(fetcher: Fetcher, location: dict, tzname: str) -> dict:
         "timezone": tzname, "forecast_days": 1,
     }
     url = f"{cfg.open_meteo_base}/v1/forecast?" + urlencode(params)
-    res = fetcher.get(url, trusted=True, use_cache=False, accept="application/json")
+    res = fetcher.get(url, trusted=True, api=True, use_cache=False, accept="application/json")
     return parse_open_meteo(json.loads(res.text), location, tzname)
 
 

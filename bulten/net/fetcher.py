@@ -2,6 +2,11 @@
 
 Tüm kaynak okumaları buradan geçer. Operatörün .env ile tanımladığı uç noktalar
 (`trusted=True`) özel ağ kontrolünden muaftır; arayüzden eklenen kaynaklar asla muaf değildir.
+
+robots.txt sayfa ve besleme okumalarında uygulanır. Programatik kullanım için belgelenmiş API
+uç noktaları (`api=True`: Open-Meteo, TCMB/piyasa JSON, arama API'leri) robots.txt'ye değil
+sağlayıcının API koşullarına tabidir; ör. api.open-meteo.com tarayıcılar için "Disallow: /" döndürür
+ama /v1/forecast ücretsiz (ticari olmayan) programatik kullanım için sunulur.
 """
 from __future__ import annotations
 
@@ -197,8 +202,8 @@ class Fetcher:
 
     def get(self, url: str, *, trusted: bool = False, use_cache: bool = True, retries: int = 2,
             accept: str | None = None, extra_headers: dict | None = None,
-            max_bytes: int | None = None) -> FetchResult:
-        if self.respect_robots and not self._robots_allowed(url, trusted):
+            max_bytes: int | None = None, api: bool = False) -> FetchResult:
+        if self.respect_robots and not api and not self._robots_allowed(url, trusted):
             raise FetchError("robots.txt bu sayfanın okunmasına izin vermiyor.", kind="robots",
                              retryable=False, url=url)
         headers = dict(extra_headers or {})

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!-- Kaynak: https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5129195-windows-11-24h2-25h2-security-update | alınma: 2026-09-26 | küçültüldü (yalnızca ana içerik) -->
+<html><head><title>September 14, 2026—KB5129195 (OS Builds 26200.9457 and 26100.9457) Out-of-band | Microsoft Support</title><meta content="09/14/2026" name="ms.date"/><meta content="2026-09-23 02:43 AM" name="updated_at"/></head><body><main class="col col-md-9 mt-4" id="supMainContent" role="main" tabindex="-1">
+<h1 id="september-14-2026kb5129195-os-builds-262009457-and-261009457-out-of-band">September 14, 2026—KB5129195 (OS Builds 26200.9457 and 26100.9457) Out-of-band</h1>
+<section>
+<div id="supAppliesToTableContainer">
+<details id="supAppliesToList"><summary>Applies To</summary><div><span>Windows 11 version 25H2, all editions</span> <span>Windows 11 version 24H2, all editions</span> </div></details>
+</div>
+</section>
+<div>
+<p>This out-of-band (OOB) update for Windows 11, version 25H2 and Windows 11, version 24H2 (KB5129195) is cumulative. It includes updates from previous releases, along with additional security and non-security improvements. Visit the <a href="https://learn.microsoft.com/windows/release-health/status-windows-11-25H2">Windows release health dashboard</a> for the latest status on this release.</p>
+<h2 id="improvements">Improvements</h2>
+<p>This OOB update includes the following improvement:</p>
+<ul>
+<li><p><strong>[Security]</strong> This update includes protections documented in <a href="https://msrc.microsoft.com/update-guide/advisory/CVE-2026-62721">CVE-2026-62721</a>, which refers to a Windows User-Mode Power Service (UMPS) Elevation of Privilege vulnerability.</p>
+</li>
+<li><p><strong>[Remote Desktop Services (known issue)]</strong> Fixed: This update addresses an issue affecting Remote Desktop Services (RDS) after installing the September 2026 Windows security update (<a href="kb5122880-windows-11-22h2-23h2-security-update">KB5122880</a>). In affected environments, RDS might become unstable, causing RDP connection and sign-in failures or servers to become unresponsive during Remote Desktop configuration. Related tools, including Microsoft Management Console (MMC), RDS Licensing Diagnoser, File Explorer, and the Windows Update page, might also stop responding.</p>
+</li>
+<li><p><strong>[Hyper-V (known issue)]</strong> Fixed: Some applications that use <a href="https://learn.microsoft.com/virtualization/api/hcs/overview">HCS-managed</a> virtual machines experienced issues when sharing host folder with Linux VMs using Plan9. Folders shared from the Windows host using Plan9 did not appear or could not be accessed in the guest environment.</p>
+</li>
+<li><p><strong>[8-channel or 3D audio modes]</strong> Fixed: Some USB Audio Class 1.0 devices functioning as expected in standard stereo configurations failed when using multichannel audio features, including 8-channel or 3D audio modes. <em>(Note: There are other audio symptoms not resolved in this OOB update. See the “Known issues in this update” section for more information.)</em></p>
+</li>
+</ul>
+<h2 id="component-updates">Component updates</h2>
+<h2 id="windows-11-servicing-stack-update-kb5124007---226219441">Windows 11 servicing stack update (KB5124007) - 22621.9441</h2>
+<p>This update makes quality improvements to the servicing stack, which is the component that installs Windows updates. Servicing stack updates (SSU) ensure that you have a robust and reliable servicing stack so that your devices can receive and install Microsoft updates. To learn more about SSUs, see <a href="https://learn.microsoft.com/windows/deployment/update/servicing-stack-updates#simplifying-on-premises-deployment-of-servicing-stack-updates">Simplifying on-premises deployment of servicing stack updates</a>.</p>
+<h2 id="known-issues-in-this-update">Known issues in this update</h2>
+<details>
+<summary>Domain-joined devices might lose their secure trust relationship with the domain</summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 8, 2026, Windows security update (<a href="/en-us/help/5124008">KB5124008</a>), or later updates, some <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts">Credential Guard protected machine accounts</a> might lose their secure channel with an on-premises Active Directory (AD) domain. Users might then be unable to sign in interactively with valid domain credentials and might receive a message stating that the trust relationship between the device and the domain failed. Offline sign-in using previously cached credentials might continue to work. AD replication and AD services on the domain controllers are not affected.</p>
+<p>This issue occurs because <a href="/en-us/help/5124008">KB5124008</a> and later updates enable the <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts#machine-identity-isolation">Machine Identity Isolation</a> feature. While the update does not directly enable Machine Identity Isolation enforcement, it does cause Windows to begin honoring any existing or policy-provisioned settings that enabled Machine Identity Isolation enforcement. However, this feature is only supported for environments connected to domain controllers running at a Windows Server 2025 Domain Functional Level (DFL) and above. The feature should be disabled elsewhere. Any devices previously configured to use Machine Identity Isolation that are not connected to Windows Server 2025 domain controllers will experience this issue and will need to disable the feature.</p>
+<h3 id="workaround">Workaround</h3>
+<p><em>Important: This section contains information about modifying the registry. Before you modify the registry, back it up and make sure that you know how to restore it if a problem occurs. For more information, see <a href="/en-us/help/322756">How to back up and restore the registry in Windows</a>.</em></p>
+<p>To work around this issue, disable Machine Identity Isolation using the same management method that was used to enable it. Choose the applicable option below:</p>
+<ol>
+<li><p>If Machine Identity Isolation was enabled by Intune policy, <a href="https://learn.microsoft.com/windows/client-management/mdm/policy-csp-deviceguard#machineidentityisolation">disable Machine Identity Isolation with Intune</a>.</p>
+</li>
+<li><p>If Machine Identity Isolation was enabled by Group Policy, <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/credential-guard-protected-machine-accounts#machine-identity-isolation">disable Machine Identity Isolation with Group Policy</a>.</p>
+</li>
+<li><p>If Machine Identity Isolation was enabled directly in the registry, use these steps to disable it:</p>
+<ul>
+<li><p>On the Windows 11, version 24H2 or 25H2 device, locate the following registry paths:</p>
+<pre><code>HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MachineIdentityIsolation
+</code></pre>
+<pre><code>HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard\MachineIdentityIsolation
+</code></pre>
+</li>
+<li><p>For either of these registry keys, if the value of <code>MachineIdentityIsolation</code> is set to <code>2</code>, change it to:</p>
+<pre><code>MachineIdentityIsolation = 0
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<p>After you disable Machine Identity Isolation, restart the device.</p>
+<p>Then reset the secure channel using the following command:</p>
+<pre><code>Test-ComputerSecureChannel -Repair -Credential (Get-Credential)
+</code></pre>
+<p><strong>Resolution</strong></p>
+<p>Microsoft plans to resolve this issue in a future Windows update by temporarily preventing Machine Identity Isolation enforcement while improvements are made to the feature.</p>
+</details>
+<details>
+<summary>USB Audio Class 1.0 devices with error Code 10 or no output </summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 8, 2026, Windows security update, some <a href="https://learn.microsoft.com/windows-hardware/drivers/audio/usb-audio-class-system-driver--usbaudio-sys-">USB Audio Class 1.0 devices</a> might fail to start or produce audio. Affected devices might experience one or more of the following symptoms:</p>
+<ul>
+<li>The device displays an error in Device Manager: "This device cannot start (Code 10).”</li>
+<li>No audio output.</li>
+<li>Volume controls are unresponsive or remain at zero.</li>
+<li>Sound settings are unresponsive or unavailable.</li>
+</ul>
+<p>This issue is limited to USB Audio Class 1.0 devices.</p>
+<p><strong>Resolution</strong></p>
+<p>Microsoft is working on a resolution and will update this documentation when more information is available.</p>
+</details>
+<details>
+<summary>File History might stop working after installing September 2026 Windows update </summary>
+<p><strong>Symptoms</strong></p>
+<p>After installing the September 2026 Windows security update <a href="/en-us/help/5124008">KB5124008</a>, some customers using File History, might be unable to create or update backups. File History, available through <strong>Control Panel &gt; System and Security &gt; File History</strong>, is used to back up files to an external drive or network location. Affected devices might incorrectly display a "Reconnect your drive" message even when a compatible backup drive is connected and functioning properly. Additionally, the "Last Backup" timestamp might not update, and previously backed up files might show "No previous version available." In some cases, Event Viewer might record application crash events referencing <code>FileHistory.exe</code> and <code>KERNELBASE.dll</code>.</p>
+<p><strong>Resolution</strong></p>
+<p>This issue is resolved in Windows updates released on and after September 22, 2026 such as <a href="kb5124010-windows-11-24h2-25h2-update">KB5124010</a>. We recommend you install the latest Windows update for your device as it contains important improvements and issue resolutions, including this one.</p>
+</details>
+<h2 id="how-to-get-this-update">How to get this update</h2>
+<p><strong>Before you install this update</strong></p>
+<p>Microsoft now combines the latest servicing stack update (SSU) for your operating system with the latest cumulative update (LCU). For general information about SSUs, see <a href="https://docs.microsoft.com/windows/deployment/update/servicing-stack-updates">Servicing stack updates</a> and <a href="/en-us/topic/servicing-stack-updates-ssu-frequently-asked-questions-06b62771-1cb0-368c-09cf-87c4efc4f2fe">Servicing Stack Updates (SSU): Frequently Asked Questions</a>.</p>
+<p><strong>Install this update</strong></p>
+<p>To install this update, use one of the following Windows and Microsoft release channels.</p>
+<hr/>
+<div id="tabgroup_1">
+<ul>
+<li>
+<a href="#tabpanel_1_windows-update">Windows Update</a>
+</li>
+<li>
+<a href="#tabpanel_1_business">Business</a>
+</li>
+<li>
+<a href="#tabpanel_1_catalog">Catalog</a>
+</li>
+<li>
+<a href="#tabpanel_1_server-update-services">Server Update Services</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows-update">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update and Microsoft Update.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_business">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update downloads and installs automatically from Windows Update for Business in accordance with configured policies.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tabpanel_1_catalog">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>To install this update, download the standalone package(s) for this update from the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=KB5129195">Microsoft Update Catalog</a>. This update contains MSU files that require installation in a specific order. Follow the Arm64 installation instructions or x64 installation instructions, as appropriate.<br/><br/>If you install additional Dynamic Update packages, use versions from the same release month as this update. If a Safe OS Dynamic Update or Setup Dynamic Update is not available for the same release month, use the most recently released version.<br/><br/><strong>Note</strong> This latest cumulative update includes updates for AI components. AI components are applicable only to Copilot+ PCs and will not install on other Windows client PCs or Windows Server.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="bkmk_catalog_install"></a></p>
+<details>
+<summary>Arm64 installation instructions</summary>
+<p><strong>Note</strong> The Microsoft Update Catalog may include one or more required checkpoint cumulative updates and the target cumulative update. Install the checkpoint cumulative updates in order before installing the target cumulative update.</p>
+<p>Download all MSU files for update KB5129195 from the Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Ensure no other files are present in the folder.</p>
+<p>This update consists of the following update file(s).</p>
+<table>
+<thead>
+<tr>
+<th><strong>Item</strong></th>
+<th><strong>MSU file</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Required checkpoint cumulative update</strong></td>
+<td><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu</a></td>
+</tr>
+<tr>
+<td><strong>Target cumulative update</strong></td>
+<td><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5129195-arm64_e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Method 1: Install each MSU file individually, in order</strong></p>
+<p>Double-click each file in the following order to install that update (if there is more than one .msu file listed):</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/f263aa64-f367-42f0-9cad-328f342b93f7/public/windows11.0-kb5043080-arm64_df540a05f9b118e339c5520f4090bb5d450f090b.msu">windows11.0-kb5129195-arm64_e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu</a></li>
+</ol>
+<p><strong>Note</strong> If a required checkpoint cumulative update is already present, a message will indicate that the update is already installed.  For guidance on using the Windows Update Standalone Installer (Wusa.exe), see <a href="/en-us/help/934307">Description of the Windows Update Standalone Installer in Windows</a>.</p>
+<p><strong>Method 2: Install all MSU files together</strong></p>
+<p>Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target cumulative update. DISM automatically scans the folder specified in the <strong>PackagePath</strong> folder and installs any required checkpoint cumulative updates.</p>
+<p><strong>Updating a Windows PC</strong></p>
+<p>To apply this update on a running Windows PC, run the following command from an elevated Command Prompt window:</p>
+<p><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5129195-arm64_e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu</code></p>
+<p>Or, run the following command from an elevated PowerShell window:</p>
+<p><code>Add-WindowsPackage -Online -PackagePath "c:\\packages\\windows11.0-kb5129195-arm64_e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu"</code></p>
+<p><strong>Updating Windows installation media</strong></p>
+<p>To apply this update to Windows installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt window:</p>
+<p><code>DISM /Image:mountdir /Add-Package /PackagePath:windows11.0-kb5129195-arm64__e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu</code></p>
+<p>Or, run the following command from an elevated PowerShell window:</p>
+<p><code>Add-WindowsPackage -Path "c:\\offline" -PackagePath "windows11.0-kb5129195-arm64__e6b0a7f8c8cacdf87e8da1a01fe073934a0002b4.msu" -PreventPending</code></p>
+</details>
+<details>
+<summary>x64 installation instructions</summary>
+<p><strong>Note</strong> The Microsoft Update Catalog may include one or more required checkpoint cumulative updates and the target cumulative update. Install the checkpoint cumulative updates in order before installing the target cumulative update.</p>
+<p>Download all MSU files for update KB5129195 from the Microsoft Update Catalog and place them in the same folder (for example, C:/Packages). Ensure no other files are present in the folder.</p>
+<p>This update consists of the following update file(s).</p>
+<table>
+<thead>
+<tr>
+<th><strong>Item</strong></th>
+<th><strong>MSU file</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Required checkpoint cumulative update</strong></td>
+<td><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/d8b7f92b-bd35-4b4c-96e5-46ce984b31e0/public/windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu">windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu</a></td>
+</tr>
+<tr>
+<td><strong>Target cumulative update</strong></td>
+<td><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/471c8f54-b9fc-491d-9944-234d5db009f0/public/windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu">windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Method 1: Install each MSU file individually, in order</strong></p>
+<p>Double-click each file in the following order to install that update (if there is more than one .msu file listed):</p>
+<ol>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/d8b7f92b-bd35-4b4c-96e5-46ce984b31e0/public/windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu">windows11.0-kb5043080-x64_953449672073f8fb99badb4cc6d5d7849b9c83e8.msu</a></li>
+<li><a href="https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/471c8f54-b9fc-491d-9944-234d5db009f0/public/windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu">windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu</a></li>
+</ol>
+<p><strong>Note</strong> If a required checkpoint cumulative update is already present, a message will indicate that the update is already installed.  For guidance on using the Windows Update Standalone Installer (Wusa.exe), see <a href="/en-us/help/934307">Description of the Windows Update Standalone Installer in Windows</a>.</p>
+<p><strong>Method 2: Install all MSU files together</strong></p>
+<p>Use <a href="https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism?view=windows-11">Deployment Image Servicing and Management (DISM.exe)</a> to install the target cumulative update. DISM automatically scans the folder specified in the <strong>PackagePath</strong> folder and installs any required checkpoint cumulative updates.</p>
+<p><strong>Updating a Windows PC</strong></p>
+<p>To apply this update on a running Windows PC, run the following command from an elevated Command Prompt window:</p>
+<p><code>DISM /Online /Add-Package /PackagePath:c:\packages\windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu</code></p>
+<p>Or, run the following command from an elevated PowerShell window:</p>
+<p><code>Add-WindowsPackage -Online -PackagePath "c:\\packages\\windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu"</code></p>
+<p><strong>Updating Windows installation media</strong></p>
+<p>To apply this update to Windows installation media, see <a href="https://learn.microsoft.com/windows/deployment/update/media-dynamic-update">Update Windows installation media with Dynamic Update</a>.</p>
+<p>To add this update to a mounted image, run the following command from an elevated Command Prompt window:</p>
+<p><code>DISM /Image:mountdir /Add-Package /PackagePath:windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu</code></p>
+<p>Or, run the following command from an elevated PowerShell window:</p>
+<p><code>Add-WindowsPackage -Path "c:\\offline" -PackagePath "windows11.0-kb5129195-x64_ed361878ec2b56a7dfdb8f256565263a7fdc8eaa.msu " -PreventPending</code></p>
+</details><br/><br/>
+</section>
+<section id="tabpanel_1_server-update-services">
+<table>
+<thead>
+<tr>
+<th><strong>Available</strong></th>
+<th><strong>Next Step</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span>
+</span>
+</td>
+<td>This update automatically syncs with Windows Server Update Services (WSUS) if you configure <strong>Products and Classifications</strong> as follows:<br/><ul><li><strong>Product</strong>: Windows 11</li><li><strong>Classification</strong>: Security Updates</li></ul></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+<h2 id="file-information">File Information</h2>
+<p>For a list of the files provided in this update, <a href="https://go.microsoft.com/fwlink/?LinkId=2379258">download the file information for cumulative update KB5129195</a>.</p>
+<p>For a list of the files provided in the servicing stack update, download the file information for <a href="https://go.microsoft.com/fwlink/?LinkId=2379401">SSU KB5124007 - versions 22621.9441</a>.</p>
+<details>
+<summary>Change log</summary>
+<table>
+<thead>
+<tr>
+<th><strong>Change date</strong></th>
+<th><strong>Change description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>September 22, 2026</strong></td>
+<td>Added the symptoms and resolution for the known issue, "File History might stop working after installing September 2026 Windows update".</td>
+</tr>
+</tbody>
+</table>
+</details>
+</div>
+</main></body></html>

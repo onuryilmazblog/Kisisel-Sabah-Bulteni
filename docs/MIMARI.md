@@ -52,7 +52,14 @@ saklanır. Olay hafızasına ve tekrar filtresine girmezler.
 2. **Resmî bilinen sorun ↔ sorun olayı** (saha kaynaklı olanlar dahil): Ortak KB ile uyumlu belirti
    etiketleri ya da yüksek başlık benzerliği aranır. Özgül belirti etiketleri ayrışıyorsa eşleşme
    reddedilir; bu kural aynı KB'deki iki farklı sorunu ayrı tutar. İki farklı Release health kimliği
-   yalnızca başlıklar neredeyse aynıysa birleşir.
+   yalnızca başlıklar neredeyse aynıysa birleşir. Gerçek verilerden gelen iki ek kural:
+   - **Aynı resmî başlık:** Microsoft aynı sorunu her ürün için farklı KB numarasıyla ama aynı başlıkla
+     yayımlar (ör. WSUS sorunu Server 2025'te KB5122871, Server 2022'de KB5122882). Resmî kayıtların
+     başlıkları neredeyse aynıysa KB ve ürün farkına bakılmadan tek olay olur.
+   - **Düzelten KB:** Microsoft açık sorunu, onu kısmen düzelten sonraki KB'lerin makalelerinde de (bazen
+     farklı başlıkla) listeler. KB X makalesindeki sorun, Release health'in "X ile (kısmen) düzeltildi"
+     dediği sorunla ayırt edici bir belirti paylaşıyorsa aynı olaya bağlanır. Bu turda açılmış bir olay
+     böylece köprülenirse ikisi birleştirilir (sürümü veya kullanıcı durumu olan olay birleştirilmez).
 3. **Saha raporu:** KB ve belirti örtüşüyorsa ya da başlık benzerliği güçlüyse eşleşir. KB anan ama
    belirti belirtmeyen rapor hangi soruna ait olduğu bilinemediği için KB sürüm olayına iliştirilir.
 4. **Haber:** 48 saatlik pencerede olaydaki tüm başlıklarla karşılaştırılır (tekli bağlantı). Başlıktaki
@@ -65,7 +72,7 @@ Metin karşılaştırması Türkçe büyük/küçük harf kurallarını ve aksan
 ## Maddi durum ve sürümleme
 
 Sorunlar için maddi durum şu alanlardan oluşur: teyit düzeyi, durum, ürünler, belirti etiketleri,
-tetikleyen KB'ler, düzelten KB'ler, geçici çözüm (var/yok + token imzası), KIR, düzeltme var mı, risk
+tetikleyen KB'ler, düzelten KB'ler, kısmen düzelten KB'ler ("partially resolved"; tam düzeltme sayılmaz), geçici çözüm (var/yok + token imzası), KIR, düzeltme var mı, risk
 ve saha kaynağı sayısı kovası (1 / 2 / 5+).
 
 Yeni sürüm oluşturan değişiklikler:
@@ -77,6 +84,7 @@ Yeni sürüm oluşturan değişiklikler:
 | `correction` | Ürün listesinden çıkarma, tür düzeltmesi |
 | `workaround` / `workaround_updated` | Geçici çözüm/KIR yayımlandı; metin önemli ölçüde değişti (Jaccard < 0,5) |
 | `fix` | Durum "çözüldü" oldu veya düzelten KB eklendi |
+| `partial_fix` | Sorunu kısmen düzelten KB eklendi ("partially resolved"); durum açık kalır |
 | `reopened` | Çözüldü → açık |
 | `risk_changed` | Risk seviyesi değişti |
 | `spread` | Teyitsiz olayda bağımsız saha kaynağı eşiği aşıldı |

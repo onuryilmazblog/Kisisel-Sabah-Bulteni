@@ -32,8 +32,8 @@ ADAPTER_ORDER = {
 }
 
 # Anlamsal özet: yalnızca anlamlı alanlar (yazım/tarih/düzen değişikliğini dışarıda bırakmak için).
-SEMANTIC_FIELDS = ("status", "originating_kbs", "resolving_kbs", "products", "tags", "kir", "stage",
-                   "change_kind", "platforms", "release_type", "builds", "versions", "support_end",
+SEMANTIC_FIELDS = ("status", "originating_kbs", "resolving_kbs", "partial_fix_kbs", "products", "tags", "kir",
+                   "stage", "change_kind", "platforms", "release_type", "builds", "versions", "support_end",
                    "hotfix_type", "admin_action")
 
 

@@ -81,6 +81,8 @@ class AdapterContext:
     conn: sqlite3.Connection
     fetcher: Fetcher
     settings: dict[str, Any]
+    # Yalnızca kuru doğrulamada: veri tabanı yerine bu (kb, url, ürünler) listesi kullanılır.
+    kb_targets: list[tuple[str, str, list[str]]] | None = None
 
 
 AdapterFn = Callable[[SourceRow, AdapterContext], AdapterResult]

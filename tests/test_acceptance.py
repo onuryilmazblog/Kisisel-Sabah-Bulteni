@@ -5,6 +5,7 @@ import json
 
 from helpers import FakeFetcher, freeze, make_db, only_sources, rss_feed, wrh_page
 
+from bulten.catalog import PRODUCT_BY_ID
 from bulten.config import load_config
 from bulten.daily.markets import compare, parse_tcmb, parse_truncgil
 from bulten.daily.service import daily_view
@@ -25,7 +26,7 @@ WRHWS25 = WRH + "status-windows-server-2025"
 REDDIT = "https://www.reddit.com/r/sysadmin/new/.rss"
 BLEEP = "https://www.bleepingcomputer.com/feed/"
 BORN = "https://borncity.com/win/feed/"
-UH25 = "https://support.microsoft.com/en-us/topic/windows-11-version-25h2-update-history-99c7f493-df2a-4832-bd2d-6706baa0dec0"
+UH25 = PRODUCT_BY_ID["win11-25h2"].update_history
 
 
 class FakeTelegram:
@@ -48,6 +49,15 @@ def enable_telegram():
 
 def run(conn, ff, slugs):
     return collect_and_process(conn, fetcher=ff, source_ids=only_sources(conn, slugs))
+
+
+def enable_forum_source(conn):
+    """r/sysadmin, testlerde "topluluk" güven düzeyindeki bir forum beslemesini temsil eder.
+
+    Canlıda Reddit'in robots.txt dosyası otomatik erişimi yasakladığı için bu kaynak varsayılan olarak
+    kapalıdır ve gerçek Fetcher robots.txt'ye uyar; FakeFetcher robots.txt uygulamaz.
+    """
+    conn.execute("UPDATE sources SET enabled = 1 WHERE slug = 'reddit-sysadmin'")
 
 
 def send_daily(conn, tg):
@@ -87,7 +97,7 @@ def test_same_event_in_five_sources_and_two_categories_is_one_item(tmp_path):
         "https://www.aa.com.tr/tr/rss/default?cat=guncel": rss_feed([
             {"title": "İstanbul'da 5,2 büyüklüğünde deprem: AFAD ilk açıklamayı yaptı", "link": "https://aa.example/1", "desc": quake},
             {"title": "Merkez Bankası faiz kararını açıkladı", "link": "https://aa.example/2", "desc": "Politika faizi sabit tutuldu."}]),
-        "https://www.ntv.com.tr/gundem.rss": rss_feed([
+        "https://www.ntv.com.tr/turkiye.rss": rss_feed([
             {"title": "İstanbul'da 5,2 büyüklüğünde deprem meydana geldi", "link": "https://ntv.example/1", "desc": quake}]),
         "https://feeds.bbci.co.uk/turkce/rss.xml": rss_feed([
             {"title": "Marmara Denizi'nde 5,2 büyüklüğünde deprem: İstanbul'da hissedildi", "link": "https://bbc.example/1", "desc": quake}]),
@@ -117,6 +127,7 @@ def test_same_issue_across_five_sources_is_one_event(tmp_path):
     freeze(2026, 9, 20, 5)
     conn = make_db(tmp_path)
     slugs = ["wrh-status-win11-25h2", "wrh-status-win11-24h2", "reddit-sysadmin", "bleepingcomputer", "borncity"]
+    enable_forum_source(conn)
     ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), WRH24: wrh_page([OLD_ISSUE]), REDDIT: rss_feed([]),
                             BLEEP: rss_feed([]), BORN: rss_feed([])})
     run(conn, ff, slugs)  # gün 0: başlangıç taraması
@@ -150,6 +161,7 @@ def test_two_issues_same_kb_stay_separate(tmp_path):
     freeze(2026, 9, 20, 5)
     conn = make_db(tmp_path)
     slugs = ["wrh-status-win11-25h2", "ms-uh-win11-25h2", "reddit-sysadmin"]
+    enable_forum_source(conn)
     ff = FakeFetcher(pages={WRH25: wrh_page([OLD_ISSUE]), UH25: "<html><body><main>"
                             '<a href="/x/kb5999008">September 8, 2026—KB5999008 (OS Builds 26200.9445 and 26100.9445)</a>'
                             "</main></body></html>", REDDIT: rss_feed([])})
@@ -193,6 +205,7 @@ def test_read_field_report_then_ms_confirmation_notifies(tmp_path):
     enable_telegram()
     tg = FakeTelegram()
     slugs = ["wrh-status-ws2025", "reddit-sysadmin", "borncity"]
+    enable_forum_source(conn)
     ff = FakeFetcher(pages={WRHWS25: wrh_page([OLD_ISSUE], title="Windows Server 2025"), REDDIT: rss_feed([]),
                             BORN: rss_feed([])})
     run(conn, ff, slugs)
