@@ -180,7 +180,8 @@ def validate_llm_output(data: dict, evidence: list[dict], state: dict) -> tuple[
     bad_kbs = set(extract_kbs(out_text)) - allowed_kbs
     bad_cves = set(extract_cves(out_text)) - allowed_cves
     if bad_kbs or bad_cves:
-        return None, [f"LLM çıktısı kanıtta olmayan kimlikler içerdi ({', '.join(sorted(bad_kbs | bad_cves))}); reddedildi."]
+        ids = sorted(f"KB{k}" for k in bad_kbs) + sorted(bad_cves)
+        return None, [f"LLM çıktısı kanıtta olmayan kimlikler içerdi ({', '.join(ids)}); reddedildi."]
     if not norm_space(data.get("summary_tr", "")) or not norm_space(data.get("title_tr", "")):
         return None, ["LLM çıktısı boş alan içerdi; reddedildi."]
     actions = []
@@ -298,7 +299,7 @@ def template_summary(conn: sqlite3.Connection, version_id: int, settings: dict) 
         meta = state.get("meta") or {}
         stage = STAGE_TR.get(state.get("stage"), state.get("stage") or "")
         when = f" (hafta: {meta['week']}" + (f", servis sürümü {meta['service_release']}" if meta.get("service_release") else "") + ")" if meta.get("week") else ""
-        summary = f"{stage}{when}. " + first_sentences(main_text, 2, 360)
+        summary = f"{stage}{when}. " + first_sentences(main_fields.get("summary") or main_text, 2, 360)
         if meta.get("admin_action_text"):
             actions.append({"text": "Hazırlık adımı (kaynak): " + truncate(meta["admin_action_text"], 260),
                             "basis": "kaynak", "evidence_quote": truncate(meta["admin_action_text"], 200)})

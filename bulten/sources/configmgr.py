@@ -276,8 +276,8 @@ def parse_cm_release_notes_md(md: str, *, page_url: str) -> AdapterResult:
 
 
 def _workaround(text: str) -> str:
-    m = re.search(r"(?:Workaround|To work around this issue|Resolution)\s*:?\s*(.+)", text, re.I | re.S)
-    return norm_space(m.group(1))[:1500] if m else ""
+    m = re.search(r"(?:Workaround|To work around this issue|Resolution)\s*[:,]?\s*(.+)", text, re.I | re.S)
+    return norm_space(m.group(1)).lstrip(" ,;:")[:1500] if m else ""
 
 
 def parse_cm_tp_md(md: str, *, page_url: str, max_versions: int = 3) -> AdapterResult:

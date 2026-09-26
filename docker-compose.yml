@@ -1,0 +1,28 @@
+# İki süreç aynı veri tabanını (SQLite, WAL) ortak volume üzerinden paylaşır.
+services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - bulten-data:/data
+    ports:
+      # Doğrudan internete açmayın; HTTPS ters proxy (ör. Caddy) arkasında kullanın.
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - bulten-data:/data
+    command: ["bulten", "worker"]
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+volumes:
+  bulten-data:

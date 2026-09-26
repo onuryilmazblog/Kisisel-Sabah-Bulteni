@@ -33,7 +33,7 @@ COMMUNITY_PATTERNS = [
     re.compile(r"^https?://(?:[a-z-]+\.)?learn\.microsoft\.com/[^/]+/answers/", re.I),
     re.compile(r"^https?://answers\.microsoft\.com/", re.I),
     re.compile(r"^https?://social\.(?:technet|msdn)\.microsoft\.com/", re.I),
-    re.compile(r"^https?://techcommunity\.microsoft\.com/(?:discussions|t5/[^/]+/(?:m-p|td-p|qaq-p)/)", re.I),
+    re.compile(r"^https?://techcommunity\.microsoft\.com/(?:discussions|t5/[^/]+/(?:[^/]+/)?(?:m-p|td-p|qaq-p)/)", re.I),
     re.compile(r"^https?://feedbackportal\.microsoft\.com/", re.I),
     re.compile(r"^https?://github\.com/", re.I),
     re.compile(r"^https?://(?:www\.|old\.)?reddit\.com/", re.I),

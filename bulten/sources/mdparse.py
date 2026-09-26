@@ -104,6 +104,7 @@ def md_to_text(md: str) -> str:
             continue
         s = line.rstrip()
         s = re.sub(r"^\s*>\s?", "", s)
+        s = re.sub(r"^#{1,6}\s+", "", s)  # alt başlıklar düz metin satırı olur
         m = re.match(r"^\s*\[!(\w+)\]\s*$", s)
         if m:
             out_lines.append(_ALERT.get(m.group(1).upper(), ""))

@@ -142,7 +142,7 @@ def match_issue(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, f
     """Bilinen sorun veya saha raporunu mevcut bir sorun olayıyla eşleştirir."""
     official = o.trust == "official" and o.kind in ("known_issue", "cm_known_issue")
     cands = _issue_candidates(conn, o, 120 if official else 45)
-    text = o.title + " " + o.fields.get("summary", "")[:300]
+    text = o.title + " " + o.fields.get("summary", "")[:300] + " " + (o.fields.get("canonical_title_en") or "")
     best: tuple[int | None, str, float] = (None, "", 0.0)
     for c in cands:
         kb_overlap = bool(o.kbs & c["kbs"])
@@ -218,11 +218,14 @@ def match_news(conn: sqlite3.Connection, o: ObsRow) -> tuple[int | None, str, fl
             mkeys = key_tokens(mtitle)
             sim = max(title_similarity(o.title, mtitle), 0.95 * title_similarity(text, mtext))
             malt = jload(mem["fields_json"], {}).get("canonical_title_en") or ""
+            keys_a, keys_b = okeys, mkeys
             if alt and malt:
+                # Diller arası: kanonik İngilizce başlıklar karşılaştırılır (özel adlar da onlardan).
                 sim = max(sim, title_similarity(alt, malt))
+                keys_a, keys_b = key_tokens(alt) or okeys, key_tokens(malt) or mkeys
             if near_duplicate_text(text, mtext):
                 sim = max(sim, 0.9)
-            if okeys and mkeys and not (okeys & mkeys) and sim < 0.8:
+            if keys_a and keys_b and not (keys_a & keys_b) and sim < 0.8:
                 sim = 0.0
             score = max(score, sim)
         if score > best[2]:

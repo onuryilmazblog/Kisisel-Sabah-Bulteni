@@ -118,6 +118,25 @@ def cmd_telegram_test(args) -> None:
     print(process_deliveries(conn))
 
 
+def cmd_telegram_webhook(args) -> None:
+    """Webhook modunu etkinleştirir (APP_BASE_URL https olmalı)."""
+    from .delivery.telegram import TelegramClient
+
+    cfg = load_config()
+    if not (cfg.telegram_bot_token and cfg.telegram_webhook_secret and cfg.app_base_url.startswith("https://")):
+        print("Gerekli: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET ve https ile başlayan APP_BASE_URL.")
+        sys.exit(1)
+    client = TelegramClient(cfg)
+    if args.remove:
+        print(client._post("deleteWebhook", {}))
+        return
+    url = f"{cfg.app_base_url}/telegram/webhook/{cfg.telegram_webhook_secret}"
+    res = client._post("setWebhook", {"url": url, "secret_token": cfg.telegram_webhook_secret,
+                                      "allowed_updates": ["message", "callback_query"]})
+    print(res)
+    print("TELEGRAM_MODE=webhook olarak ayarlamayı unutmayın.")
+
+
 def cmd_status(args) -> None:
     from .pipeline.collect import last_success_by_source
     from .usage import usage_summary
@@ -156,6 +175,9 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("demo-yukle", help="Kurgusal demo verisi yükle").set_defaults(fn=cmd_demo_load)
     sub.add_parser("demo-sil", help="Demo verisini sil").set_defaults(fn=cmd_demo_remove)
     sub.add_parser("telegram-test", help="Telegram test mesajı gönder").set_defaults(fn=cmd_telegram_test)
+    tw = sub.add_parser("telegram-webhook", help="Telegram webhook'unu ayarla (varsayılan: long polling)")
+    tw.add_argument("--kaldir", dest="remove", action="store_true", help="Webhook'u kaldır (polling'e dön)")
+    tw.set_defaults(fn=cmd_telegram_webhook)
     sub.add_parser("durum", help="Durum özeti").set_defaults(fn=cmd_status)
     args = p.parse_args(argv)
     load_config()

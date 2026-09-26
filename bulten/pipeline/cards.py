@@ -18,6 +18,11 @@ KIND_TR = {"issue": "Sorun", "release": "Güncelleme", "feature": "Özellik", "n
            "version": "Sürüm", "hotfix": "Hotfix", "news": "Haber", "content": "İçerik"}
 
 
+def safe_url(url: str | None) -> bool:
+    """Yalnızca http/https bağlantılar gösterilir (javascript:, data: vb. asla)."""
+    return bool(url) and url.strip().lower().startswith(("https://", "http://"))
+
+
 def product_short(pid: str) -> str:
     p = PRODUCT_BY_ID.get(pid)
     if not p:
@@ -65,7 +70,8 @@ def build_card(conn: sqlite3.Connection, version_id: int, *, mode: str = "full")
     for a in actions:
         a["basis_label"] = BASIS_LABELS.get(a.get("basis"), a.get("basis"))
     changes = [c for c in jload(row["change_types_json"], []) if c != "new"]
-    links = list(meta.get("official_refs") or []) + list(meta.get("field_refs") or [])
+    links = [ln for ln in (meta.get("refs") or list(meta.get("official_refs") or []) + list(meta.get("field_refs") or []))
+             if safe_url(ln.get("url"))]
     return {
         "version_id": row["id"], "event_id": row["event_id"], "version": row["version"],
         "current_version": row["current_version"], "module": row["module"],

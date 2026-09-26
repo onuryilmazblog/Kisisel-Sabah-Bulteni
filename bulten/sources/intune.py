@@ -93,6 +93,7 @@ def _make_obs(*, title: str, ids: list[str], body_md: str, page: str, category: 
             "license_note": _first_match(LICENSE_RE, body_text)[:400],
             "rollout_note": _first_match(ROLLOUT_RE, body_text)[:400],
             "admin_action": action, "tags": symptom_tags(title + " " + body_text),
+            "summary": md_to_text(body_md.split("\n#", 1)[0])[:1500],
         },
     )
 

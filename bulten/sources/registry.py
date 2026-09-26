@@ -62,15 +62,21 @@ def _src(slug: str, name: str, module: str, adapter: str, url: str, trust: str, 
     }
 
 
+# Arama dizininde bulunamayan (varlığı doğrulanamayan) Release health sayfaları.
+UNVALIDATED_WRH = {"status-windows-11-23h2", "resolved-issues-windows-11-23h2", "resolved-issues-windows-10-21h2"}
+
+
 def builtin_sources() -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for p in PRODUCTS:
         if p.wrh_status:
             out.append(_src(f"wrh-status-{p.id}", f"Release health: {p.label}", "windows", "wrh_status",
-                            wrh_url(p.wrh_status), "official", products=[p.id], enabled=False, critical=True))
+                            wrh_url(p.wrh_status), "official", products=[p.id], enabled=False, critical=True,
+                            note=UNVALIDATED if p.wrh_status in UNVALIDATED_WRH else SEARCH_VALIDATED))
         if p.wrh_resolved:
             out.append(_src(f"wrh-resolved-{p.id}", f"Çözülen sorunlar: {p.label}", "windows", "wrh_resolved",
-                            wrh_url(p.wrh_resolved), "official", products=[p.id], enabled=False))
+                            wrh_url(p.wrh_resolved), "official", products=[p.id], enabled=False,
+                            note=UNVALIDATED if p.wrh_resolved in UNVALIDATED_WRH else SEARCH_VALIDATED))
         if p.update_history:
             out.append(_src(f"ms-uh-{p.id}", f"Güncelleme geçmişi: {p.label}", "windows", "ms_update_history",
                             p.update_history, "official", products=[p.id], enabled=False, critical=True,

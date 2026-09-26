@@ -1,0 +1,5 @@
+# HTTPS ters proxy örneği (Caddy otomatik Let's Encrypt sertifikası alır).
+bulten.example.com {
+    encode gzip
+    reverse_proxy 127.0.0.1:8000
+}

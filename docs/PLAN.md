@@ -60,3 +60,4 @@ engelliyor. Bu yüzden:
 - Intune/ConfigMgr ayrıştırıcıları Microsoft'un gerçek markdown kaynağından alınan örneklerle test edildi.
 - Windows release health ve support.microsoft.com HTML ayrıştırıcıları, belgelenmiş/gözlemlenen başlık kalıplarına göre hazırlanan örneklerle test edildi; canlı sayfaya karşı **test edilmedi**.
 - Hiçbir dış entegrasyon (Telegram, SMTP, Anthropic, Open-Meteo, TCMB, Truncgil, Brave) bu ortamda canlı çalıştırılmadı. Uygulama bunun için `bulten kaynak-dogrula` komutu ve arayüzde "Kaynağı test et" düğmesi sunar.
+- İstisna: Intune ve ConfigMgr kaynakları (raw.githubusercontent.com üzerinden MicrosoftDocs/memdocs) bu ortamdan canlı okundu ve olay hafızası, bülten ve worker adımlarından uçtan uca geçirildi.

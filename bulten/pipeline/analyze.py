@@ -126,8 +126,9 @@ def compute_issue_state(obs: list[dict]) -> dict[str, Any]:
               "author": o["fields"].get("author")} for o in field]
     n_field = count_independent(items) if items else 0
     wa_text = " ".join(workaround_texts)
+    versions = sorted({v for o in primary for v in (o["fields"].get("versions") or [])})
     state = {
-        "type": "issue", "evidence": evidence, "status": status, "products": sorted(products),
+        "type": "issue", "evidence": evidence, "status": status, "products": sorted(products), "versions": versions,
         "tags": sorted(tags), "originating_kbs": sorted(okbs), "resolving_kbs": sorted(rkbs),
         "workaround": bool(wa_text.strip()) or kir, "workaround_tokens": _wa_tokens(wa_text), "kir": kir,
         "fix": status in RESOLVED or bool(rkbs), "field_bucket": _bucket_sources(n_field),
@@ -138,10 +139,24 @@ def compute_issue_state(obs: list[dict]) -> dict[str, Any]:
             "field_refs": [{"url": o["url"], "title": o["title"], "source": o["fields"].get("source_name") or o["s_name"],
                             "trust": o["trust"]} for o in field][:8],
             "workaround_text": wa_text[:1500],
+            "refs": _refs(obs),
         },
     }
     state["risk"] = compute_risk(state)
     return state
+
+
+def _refs(obs: list[dict], limit: int = 8) -> list[dict]:
+    """Tüm kaynak bağlantıları (resmî önce). Kartlardaki 'Kaynak' bağlantıları buradan gelir."""
+    order = {"official": 0, "press": 1, "community": 2}
+    out, seen = [], set()
+    for o in sorted(obs, key=lambda o: (order.get(o["trust"], 3), o["id"])):
+        if not o["url"] or o["url"] in seen:
+            continue
+        seen.add(o["url"])
+        out.append({"url": o["url"], "title": o["title"], "trust": o["trust"],
+                    "source": o["fields"].get("source_name") or o["s_name"]})
+    return out[:limit]
 
 
 def compute_state(kind: str, obs: list[dict]) -> dict[str, Any]:
@@ -151,7 +166,7 @@ def compute_state(kind: str, obs: list[dict]) -> dict[str, Any]:
     main = max(official, key=lambda o: (o.get("source_updated_at") or o.get("published_at") or "", o["id"]))
     f = main["fields"]
     field_obs = [o for o in obs if o["kind"] == "field_report"]
-    meta = {"field_sources": len(field_obs),
+    meta = {"field_sources": len(field_obs), "refs": _refs(obs),
             "field_refs": [{"url": o["url"], "title": o["title"], "source": o["fields"].get("source_name") or o["s_name"],
                             "trust": o["trust"]} for o in field_obs][:6],
             "official_refs": [{"url": o["url"], "title": o["title"], "source": o["s_name"], "kind": o["kind"]}
@@ -358,7 +373,9 @@ def compute_relevance(event: dict[str, Any], state: dict[str, Any], settings: di
     role_tags: set[str] = set()
     for role in settings.get("roles") or []:
         role_tags |= ROLE_TO_TAGS.get(role, set())
-    if role_tags & set(state.get("tags") or event.get("tags") or []):
+    # Rol eşleşmesi Windows sorunları için anlamlıdır; ConfigMgr/Intune metinlerindeki genel kelimeler
+    # (ör. "authentication") yanlış eşleşme üretmesin diye yalnızca Windows modülünde uygulanır.
+    if event.get("module") == "windows" and role_tags & set(state.get("tags") or event.get("tags") or []):
         rel += 1.5
     cm_ver = settings.get("configmgr_version")
     if event.get("module") == "configmgr":
@@ -366,10 +383,16 @@ def compute_relevance(event: dict[str, Any], state: dict[str, Any], settings: di
             rel += 3.0
         elif state.get("type") == "hotfix" and cm_ver and cm_ver in (state.get("versions") or []):
             rel += 2.0
+        elif state.get("type") == "hotfix" and cm_ver and state.get("hotfix_type") in ("summary", "early_ring") and \
+                any(v > cm_ver for v in state.get("versions") or []):
+            rel += 0.5  # daha yeni bir Current Branch sürümü (yükseltme hedefi)
         elif state.get("type") == "version" and state.get("track") == "tp" and "tp" in (settings.get("configmgr_tracks") or []):
             rel += 0.5
         elif not cm_ver:
             rel += 0.5
+        if state.get("type") == "issue" and cm_ver and state.get("versions") and cm_ver not in state["versions"]:
+            # Sorun yalnızca başka ConfigMgr sürümlerinde geçerli: kullanıcının ortamıyla ilgili değil.
+            return min(rel, 0.0) + (3.0 if followed else 0.0)
     if event.get("module") == "intune":
         plats = set(state.get("platforms") or [])
         if not plats or plats & set(settings.get("intune_platforms") or []):

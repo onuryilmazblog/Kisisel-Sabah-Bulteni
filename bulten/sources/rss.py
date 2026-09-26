@@ -106,5 +106,11 @@ def run_rss(source: SourceRow, ctx: AdapterContext) -> AdapterResult:
         source, ctx, accept="application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.5")
     out = parse_feed(res.text, source=source, max_age_days=int(source.config.get("max_age_days", 7)),
                      max_items=int(source.config.get("max_items", 60)))
+    if "youtube.com/feeds/" in (source.fetch_url or source.url):
+        from ..config import load_config
+        from .youtube import enrich_transcripts
+
+        out.warnings += enrich_transcripts(ctx.conn, source.id, out.observations,
+                                           enabled=load_config().youtube_transcripts)
     out.fetched_url, out.http_status, out.not_modified = res.url, res.status, res.not_modified
     return out

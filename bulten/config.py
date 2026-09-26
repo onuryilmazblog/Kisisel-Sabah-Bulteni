@@ -160,6 +160,10 @@ def load_config(env_file: str | None = None, reload: bool = False) -> Config:
 
     trusted = [h.strip().lower() for h in _str("TRUSTED_FETCH_HOSTS").split(",") if h.strip()]
 
+    ua = _str("HTTP_USER_AGENT", "KisiselSabahBulteni/0.1 (+single-user personal morning bulletin)")
+    if not ua.isascii():
+        raise ValueError("HTTP_USER_AGENT yalnızca ASCII karakter içermelidir (HTTP başlık kuralı).")
+
     _config = Config(
         data_dir=data_dir,
         database_path=db_path,
@@ -168,10 +172,7 @@ def load_config(env_file: str | None = None, reload: bool = False) -> Config:
         secret_key_is_ephemeral=ephemeral,
         app_password=_str("APP_PASSWORD"),
         default_timezone=_str("DEFAULT_TIMEZONE", "Europe/Istanbul"),
-        http_user_agent=_str(
-            "HTTP_USER_AGENT",
-            "KisiselSabahBulteni/0.1 (+kişisel kullanım; tek kullanıcılı bülten)",
-        ),
+        http_user_agent=ua,
         http_timeout=_float("HTTP_TIMEOUT", 25.0),
         http_max_bytes=_int("HTTP_MAX_BYTES", 6_000_000),
         trusted_hosts=trusted,

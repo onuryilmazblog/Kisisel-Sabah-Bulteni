@@ -1,0 +1,18 @@
+[Unit]
+Description=Kişisel Sabah Bülteni - zamanlayıcı/worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=bulten
+WorkingDirectory=/opt/bulten
+EnvironmentFile=/opt/bulten/.env
+ExecStart=/opt/bulten/.venv/bin/bulten worker
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/bulten/data
+
+[Install]
+WantedBy=multi-user.target
